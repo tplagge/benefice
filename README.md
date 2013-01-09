@@ -127,4 +127,38 @@ HEALTH
 * tuberculosis                  : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Tuberculosis-cases-and-av/ndk3-zftj
 * wic_offices                   : https://data.cityofchicago.org/Health-Human-Services/Women-Infant-Children-Health-Clinics/g85x-gwmp
 
-
+ENVIRONMENT
+* farmers_markets_2012          : https://data.cityofchicago.org/Environment-Sustainable-Development/Farmers-Markets/hu6v-hsqb (shapefile)
+* fishing_lake_bathymetry       : 
+* forest_preserve_groves        : 
+* forest_preserve_shelters      : 
+* forest_preserve_trails        : 
+* forestry                      : 
+* natural_habitats              : 
+* natural_habitats_comments     : 
+* neighborspace_gardens         : 
+* park_events                   : 
+* parkbuildings_aug2012         :
+* parkfacilities_aug2012        :  
+* parks                         : 
+* parks_public_art              :
+* waterways                     : 
+ 
+EDUCATION
+* boundarygrades1               :
+* boundarygrades10              :
+* boundarygrades11              :
+* boundarygrades12              :
+* boundarygrades2               :
+* boundarygrades3               :
+* boundarygrades4               :
+* boundarygrades5               :
+* boundarygrades6               :
+* boundarygrades7               :
+* boundarygrades8               :
+* boundarygrades9               :
+* boundarygradesk               :
+* campus_parks                  :
+* libraries                     :
+* private_schools               :
+* public_schools                :
