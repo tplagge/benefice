@@ -64,3 +64,67 @@ Data Sources
 * public_tech_resources : https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Public-Technology-Resources/nen3-vcxj
 * 
 * 
+
+TRANSPORTATION
+* bike_racks            :  https://data.cityofchicago.org/Transportation/Bike-Racks/cbyb-69xx
+* bike_routes           :  https://data.cityofchicago.org/Transportation/Bike-Routes/2wak-k8cp
+* boulevards            :  https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Boulevards/sd36-arzm
+* cook_co_hwy_juris     :  https://data.cityofchicago.org/Transportation/Cook-County-Highway-Department-Jurisdictions/2b73-3uqk
+* major_streets         :  https://data.cityofchicago.org/Transportation/Major-Streets/ueqs-5wr6
+* metra_lines           :  https://data.cityofchicago.org/Transportation/Metra-Lines/q8wx-dznq
+* metra_stations        :  https://data.cityofchicago.org/Transportation/Metra-Stations/nqm8-q2ym
+* pedway                :  " (probably a duplicate)
+* pedway_routes         :  https://data.cityofchicago.org/Transportation/Pedway-Routes/savp-mfks
+* riverwalk             :  https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Riverwalk/7nh7-nkau
+* streets               :  https://data.cityofchicago.org/Transportation/Street-Center-Lines/xy4z-b6aa
+
+TIF
+* sbif_grant_agreements   : https://data.cityofchicago.org/Community-Economic-Development/Small-Business-Improvement-Fund-SBIF-Grant-Agreeme/jp7n-tgmf
+* tif_balance_sheets      : https://data.cityofchicago.org/Community-Economic-Development/TIF-Balance-Sheets/hezc-e4be
+* tif_balance_sheets_expenditures       :  https://data.cityofchicago.org/Community-Economic-Development/TIF-Balance-Sheets/hezc-e4be
+* tif_districts           : https://data.cityofchicago.org/Community-Economic-Development/Boundaries-Tax-Increment-Financing-Districts/iyec-2es5
+* tif_projection_reports  : https://data.cityofchicago.org/Community-Economic-Development/TIF-Projection-Reports/zai4-r88e
+* tif_status_eligibility  : https://data.cityofchicago.org/Community-Economic-Development/TIF-Status-and-Eligibility/3qsz-jemf
+
+SAFETY
+* crimes_2001_2011        : https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2
+* crimes_2012             : https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2
+* fbi_codes               : empty
+* fire_stations           : https://data.cityofchicago.org/Public-Safety/Fire-Stations/28km-gtjn
+* iucr_codes              : https://data.cityofchicago.org/Public-Safety/Chicago-Police-Department-Illinois-Uniform-Crime-R/c7ck-438e
+* life_safety_evaluations : https://data.cityofchicago.org/Buildings/Life-Safety-Evaluations/qqqh-hgyw
+* police_beats            : https://data.cityofchicago.org/Public-Safety/Boundaries-Police-Beats-deprecated-on-12-18-2012-/kd6k-pxkv
+                        to be updated to https://data.cityofchicago.org/Public-Safety/Boundaries-Police-Beats-effective-12-19-2012-/dq28-4w9c
+* police_stations         : https://data.cityofchicago.org/Public-Safety/Police-Stations/z8bn-74gv
+* sex_offenders           : https://data.cityofchicago.org/Public-Safety/Sex-Offenders/vc9r-bqvy
+
+HISTORY
+* historic_districts      : https://data.cityofchicago.org/Historic-Preservation/National-Register-of-Historic-Places/yw5d-szpx
+* historic_resources      : https://data.cityofchicago.org/Historic-Preservation/National-Register-of-Historic-Places/yw5d-szpx
+* landmarks               : https://data.cityofchicago.org/Historic-Preservation/Individual-Landmarks/tdab-kixi
+* landmarks_no_bldg       : https://data.cityofchicago.org/Historic-Preservation/Individual-Landmarks/tdab-kixi
+
+HEALTH
+* asthma_hospitalizations   : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Asthma-hospitalizations-i/vazh-t57q
+* chlamydia_females_15_44   : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Chlamydia-cases-among-fem/bz6k-73ti
+* condom_distribution_sites : https://data.cityofchicago.org/Health-Human-Services/Condom-Distribution-Sites/azpf-uc4s
+* deaths                    : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Selected-underlying-cause/j6cj-r444
+* dentists                  : ??
+* diabetes_hospitalizations : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Diabetes-hospitalizations/vekt-28b5
+* food_inspection           : https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5
+* gonorrhea_females_15_44   : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Gonorrhea-cases-for-femal/cgjw-mn43
+* gonorrhea_males_15_44     : https://data.cityofchicago.org/Health-Human-Services/Public-health-statistics-Gonorrhea-cases-for-males/m5qn-gmjx
+* hospitals                 : https://data.cityofchicago.org/Health-Human-Services/Hospitals-Chicago/ucpz-2r55 (shapefile)
+* infant_mortality          : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Infant-mortality-in-Chica/bfhr-4ckq
+* lead_screening_children   : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Screening-for-elevated-bl/v2z5-jyrq
+* low_birth_weight          : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Low-birth-weight-in-Chica/fbxr-9u99
+* mental_health_clinics     : https://data.cityofchicago.org/Health-Human-Services/Mental-Health-Clinics/v56e-cy8y (shapefile)
+* neighborhood_health_clinics : https://data.cityofchicago.org/Health-Human-Services/Neighborhood-Health-Clinics/mw69-m6xi
+* outpatient_registrations_by_zip_by_month_by_hospital : ??
+* pre_term_births               : ??
+* prenatal_care                 : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Prenatal-care-in-Chicago-/2q9j-hh6g
+* sti_specialty_clinics         : https://data.cityofchicago.org/Health-Human-Services/STI-Specialty-Clinics-Map/aewr-nzrt (shapefile)
+* tuberculosis                  : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Tuberculosis-cases-and-av/ndk3-zftj
+* wic_offices                   : https://data.cityofchicago.org/Health-Human-Services/Women-Infant-Children-Health-Clinics/g85x-gwmp
+
+
