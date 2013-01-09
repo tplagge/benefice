@@ -62,8 +62,14 @@ Data Sources
 * lobbyist_2011_major_expenditures :
 * public_plazas : https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Malls-and-Plazas/ixxk-b6xq
 * public_tech_resources : https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Public-Technology-Resources/nen3-vcxj
-* 
-* 
+* senior_centers : https://data.cityofchicago.org/Health-Human-Services/Senior-Centers/qhfc-4cw2
+* youth_centers : https://data.cityofchicago.org/Health-Human-Services/Youth-Centers/meks-hp6f
+
+COUNTY
+* propclass : PDF 
+* property_info : http://cookcountypropertyinfo.com/Pages/Pin-Results.aspx?pin= 
+* taxcode : FOIA
+
 
 TRANSPORTATION
 * bike_racks            :  https://data.cityofchicago.org/Transportation/Bike-Racks/cbyb-69xx
