@@ -1154,7 +1154,7 @@ CREATE TABLE vacant_improved (
 );
 
 
-SET search_path = tif, pg_catalog;
+-- SET search_path = tif, pg_catalog;
 
 --
 -- Name: property_values; Type: TABLE; Schema: tif; Owner: -; Tablespace: 

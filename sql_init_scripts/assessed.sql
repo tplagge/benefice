@@ -148,15 +148,6 @@ CREATE TABLE vacant_improved (
     last_year character varying(10)
 );
 
-
---
--- Name: countdown; Type: VIEW; Schema: assessed; Owner: -
---
-
-CREATE VIEW countdown AS
-    SELECT ((((((((SELECT count(property_values.pin) AS count FROM tif.property_values) - (SELECT count(*) AS count FROM apts)) - (SELECT count(*) AS count FROM condos)) - (SELECT count(*) AS count FROM exempt)) - (SELECT count(*) AS count FROM res202)) - (SELECT count(*) AS count FROM vacant)) - (SELECT count(*) AS count FROM vacant_adjacent)) - (SELECT count(*) AS count FROM vacant_improved));
-
-
 --
 -- Name: garage; Type: TABLE; Schema: assessed; Owner: -; Tablespace: 
 --

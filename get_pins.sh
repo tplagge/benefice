@@ -1,9 +1,15 @@
 #!/bin/bash
 
-createdb edifice
-psql -d edifice -c "CREATE EXTENSION postgis;"
-psql -d edifice -f pins_master.sql
-psql -d edifice -f assessed.sql
+dropdb edifice
+createdb -T base_postgis edifice
+psql -d edifice -f sql_init_scripts/pins_master.sql
+psql -d edifice -f sql_init_scripts/assessed.sql
 
-wget https://s3.amazonaws.com/edifice/pins.dump
-pg_restore -d edifice pins.dump
+if [ -f pins.dump ]
+then
+echo "pins.dump exists"
+else
+curl -o pins.dump http://dl.dropbox.com/u/14915791/pins.dump
+fi
+echo "restoring pins.dump"
+pg_restore -O -c -d edifice pins.dump
