@@ -3,11 +3,15 @@ edifice
 
 A database of the built environment in Chicago
 
+Requirements
+=
+* PostGIS
+* Python
+* wget
+* unzip
+
 Data Sources
 =
-* table_name : data_source_url
-* http://cookcountyassessor.com/Property_Search/Property_Details.aspx
-* http://cookcountypropertyinfo.com/Pages/Pin-Results.aspx
 
 * BUILDING STUFF
 * buildings, buildings_bldg_name, buildings_nonstandard, cbd_bldg_names, address, year_built, sqft, stories, university_bldg_names, ohare_bldg_names: https://data.cityofchicago.org/Buildings/Building-Footprints/w2v3-isjw
