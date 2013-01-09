@@ -162,3 +162,61 @@ EDUCATION
 * libraries                     :
 * private_schools               :
 * public_schools                :
+
+CTA
+
+* bus_routes                                         :
+* bus_stops                                          :
+* cta_bus_garages                                    :
+* cta_bus_owl                                        :
+* cta_bus_ridership                                  :
+* cta_bus_stops_routes                               :
+* cta_digital_signs                                  :
+* cta_el_ridership                                   :
+* cta_fare_media_retail_outlets                      :
+* cta_fare_media_retail_outlets_faretypes            :
+* cta_rail_lines_iso                                 :
+* cta_rail_stations_lines                            :
+* owlroutes                                          :
+* rail_lines                                         :
+* rail_lines_prejct                                  :
+* rail_stations                                      :
+
+DEMOGRAPHICS
+
+* births_and_birth_rates                             :
+* census_blocks_families_husband_and_wife            :
+* census_blocks_families_single_mother               :
+* census_blocks_families_total                       :
+* census_blocks_households                           :
+* census_blocks_population_by_race                   :
+* census_blocks_sex_by_age                           :
+* census_tracts_ancestry                             :
+* census_tracts_education                            :
+* census_tracts_fertility                            :
+* census_tracts_grandparents                         :
+* census_tracts_household_income                     :
+* census_tracts_households                           :
+* census_tracts_housing                              :
+* census_tracts_housing_bedrooms                     :
+* census_tracts_housing_gross_rent                   :
+* census_tracts_housing_heating                      :
+* census_tracts_housing_mortgage_smoc                :
+* census_tracts_housing_no_mortgage_smoc             :
+* census_tracts_housing_occupants_per_room           :
+* census_tracts_housing_rooms                        :
+* census_tracts_housing_selected_characteristics     :
+* census_tracts_housing_tenure                       :
+* census_tracts_housing_units                        :
+* census_tracts_housing_value                        :
+* census_tracts_housing_year_moved_in                :
+* census_tracts_languages_spoken_at_home             :
+* census_tracts_marital_status                       :
+* census_tracts_mobility                             :
+* census_tracts_nativity                             :
+* census_tracts_population                           :
+* census_tracts_poverty                              :
+* census_tracts_school_enrollment                    :
+* census_tracts_transportation_to_work               :
+* census_tracts_vehicles_available                   :
+* census_tracts_veterans                             :
