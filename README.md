@@ -53,9 +53,14 @@ Data Sources
 * chi_idhs_offices : 
 * circuit_court_cook_cnty_judges  :
 * community_centers :
-* contracts :
-* contracts_approval_date :
-* 
-* 
+* contracts, contracts_approval_date, contracts_city_depts, contracts_contract_type, contracts_descriptions, contracts_end_date, contracts_proc_type, contracts_spec_num, contracts_start_date, contracts_vendors : https://data.cityofchicago.org/Administration-Finance/Contracts/rsxa-ify5
+* cook_co_facilities_in_chicago : https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Cook-County-Facilities/wse8-j3xr
+* elevation_benchmarks : https://data.cityofchicago.org/Buildings/Elevation-Benchmarks/zgvr-7yfd
+* ewaste_collection_sites : 
+* lobbyist_2011_agency_report : 
+* lobbyist_2011_compensation :
+* lobbyist_2011_major_expenditures :
+* public_plazas : https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Malls-and-Plazas/ixxk-b6xq
+* public_tech_resources : https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Public-Technology-Resources/nen3-vcxj
 * 
 * 
