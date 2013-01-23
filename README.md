@@ -1,25 +1,23 @@
-edifice
-=======
+# edifice
 
-A database of the built environment in Chicago
+A database of the built environment in Chicago using open data
 
-Requirements
-=
+## Requirements
+
 * PostGIS
 * Python
 * wget
 * unzip
 
-Data Sources
-=
+## Data Sources
 
-* BUILDING STUFF
+### Buildings
 * buildings, buildings_bldg_name, buildings_nonstandard, cbd_bldg_names, address, year_built, sqft, stories, university_bldg_names, ohare_bldg_names: https://data.cityofchicago.org/Buildings/Building-Footprints/w2v3-isjw
 * curbs : https://data.cityofchicago.org/Transportation/Boundaries-Curb-Lines/5gv8-ktcg
 * building_permits_pruned: https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu
 * building_violations_pruned: https://data.cityofchicago.org/Buildings/Building-Violations/22u3-xenr
 
-* ADMIN Boundaries
+### Boundaries
 * census_block_groups: Census.gov
 * census_blocks: https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-Census-Blocks-2010/3jmu-7ijz
 * census_tracts: https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-Census-Tracts-2010/biqm-wjk3
@@ -48,11 +46,11 @@ Data Sources
 * zip_codes : https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-ZIP-Codes/2ka6-iycf
 * zoning_aug2012 : https://data.cityofchicago.org/Community-Economic-Development/Boundaries-Zoning-Districts/p8va-airx
 
-* BUSINESSES
+### Businesses
 * business_licenses : https://data.cityofchicago.org/Community-Economic-Development/Business-Licenses/r5kz-chrr
 * business_owners : https://data.cityofchicago.org/Community-Economic-Development/Business-Owners/ezma-pppn
 
-* CIVIC
+### Civic
 * cemeteries : https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Cook-County-Cemeteries-KML/zu2x-8zyf
 * chi_idhs_offices : 
 * circuit_court_cook_cnty_judges  :
@@ -69,26 +67,7 @@ Data Sources
 * senior_centers : https://data.cityofchicago.org/Health-Human-Services/Senior-Centers/qhfc-4cw2
 * youth_centers : https://data.cityofchicago.org/Health-Human-Services/Youth-Centers/meks-hp6f
 
-COUNTY
-* propclass : PDF 
-* property_info : http://cookcountypropertyinfo.com/Pages/Pin-Results.aspx?pin= 
-* taxcode : FOIA
-
-
-TRANSPORTATION
-* bike_racks            :  https://data.cityofchicago.org/Transportation/Bike-Racks/cbyb-69xx
-* bike_routes           :  https://data.cityofchicago.org/Transportation/Bike-Routes/2wak-k8cp
-* boulevards            :  https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Boulevards/sd36-arzm
-* cook_co_hwy_juris     :  https://data.cityofchicago.org/Transportation/Cook-County-Highway-Department-Jurisdictions/2b73-3uqk
-* major_streets         :  https://data.cityofchicago.org/Transportation/Major-Streets/ueqs-5wr6
-* metra_lines           :  https://data.cityofchicago.org/Transportation/Metra-Lines/q8wx-dznq
-* metra_stations        :  https://data.cityofchicago.org/Transportation/Metra-Stations/nqm8-q2ym
-* pedway                :  " (probably a duplicate)
-* pedway_routes         :  https://data.cityofchicago.org/Transportation/Pedway-Routes/savp-mfks
-* riverwalk             :  https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Riverwalk/7nh7-nkau
-* streets               :  https://data.cityofchicago.org/Transportation/Street-Center-Lines/xy4z-b6aa
-
-TIF
+### Tax Increment Financing (TIF)
 * sbif_grant_agreements   : https://data.cityofchicago.org/Community-Economic-Development/Small-Business-Improvement-Fund-SBIF-Grant-Agreeme/jp7n-tgmf
 * tif_balance_sheets      : https://data.cityofchicago.org/Community-Economic-Development/TIF-Balance-Sheets/hezc-e4be
 * tif_balance_sheets_expenditures       :  https://data.cityofchicago.org/Community-Economic-Development/TIF-Balance-Sheets/hezc-e4be
@@ -96,7 +75,12 @@ TIF
 * tif_projection_reports  : https://data.cityofchicago.org/Community-Economic-Development/TIF-Projection-Reports/zai4-r88e
 * tif_status_eligibility  : https://data.cityofchicago.org/Community-Economic-Development/TIF-Status-and-Eligibility/3qsz-jemf
 
-SAFETY
+### County
+* propclass : PDF 
+* property_info : http://cookcountypropertyinfo.com/Pages/Pin-Results.aspx?pin= 
+* taxcode : FOIA
+
+### Safety
 * crimes_2001_2011        : https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2
 * crimes_2012             : https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2
 * fbi_codes               : empty
@@ -108,13 +92,13 @@ SAFETY
 * police_stations         : https://data.cityofchicago.org/Public-Safety/Police-Stations/z8bn-74gv
 * sex_offenders           : https://data.cityofchicago.org/Public-Safety/Sex-Offenders/vc9r-bqvy
 
-HISTORY
+### Historic / Landmarks
 * historic_districts      : https://data.cityofchicago.org/Historic-Preservation/National-Register-of-Historic-Places/yw5d-szpx
 * historic_resources      : https://data.cityofchicago.org/Historic-Preservation/National-Register-of-Historic-Places/yw5d-szpx
 * landmarks               : https://data.cityofchicago.org/Historic-Preservation/Individual-Landmarks/tdab-kixi
 * landmarks_no_bldg       : https://data.cityofchicago.org/Historic-Preservation/Individual-Landmarks/tdab-kixi
 
-HEALTH
+### Health
 * asthma_hospitalizations   : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Asthma-hospitalizations-i/vazh-t57q
 * chlamydia_females_15_44   : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Chlamydia-cases-among-fem/bz6k-73ti
 * condom_distribution_sites : https://data.cityofchicago.org/Health-Human-Services/Condom-Distribution-Sites/azpf-uc4s
@@ -137,7 +121,7 @@ HEALTH
 * tuberculosis                  : https://data.cityofchicago.org/Health-Human-Services/Public-Health-Statistics-Tuberculosis-cases-and-av/ndk3-zftj
 * wic_offices                   : https://data.cityofchicago.org/Health-Human-Services/Women-Infant-Children-Health-Clinics/g85x-gwmp
 
-ENVIRONMENT
+### Environment
 * farmers_markets_2012          : https://data.cityofchicago.org/Environment-Sustainable-Development/Farmers-Markets/hu6v-hsqb (shapefile)
 * fishing_lake_bathymetry       : 
 * forest_preserve_groves        : 
@@ -154,7 +138,7 @@ ENVIRONMENT
 * parks_public_art              :
 * waterways                     : 
  
-EDUCATION
+### Education
 * boundarygrades1               :
 * boundarygrades10              :
 * boundarygrades11              :
@@ -173,8 +157,20 @@ EDUCATION
 * private_schools               :
 * public_schools                :
 
-CTA
+### Transportation
+* bike_racks            :  https://data.cityofchicago.org/Transportation/Bike-Racks/cbyb-69xx
+* bike_routes           :  https://data.cityofchicago.org/Transportation/Bike-Routes/2wak-k8cp
+* boulevards            :  https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Boulevards/sd36-arzm
+* cook_co_hwy_juris     :  https://data.cityofchicago.org/Transportation/Cook-County-Highway-Department-Jurisdictions/2b73-3uqk
+* major_streets         :  https://data.cityofchicago.org/Transportation/Major-Streets/ueqs-5wr6
+* metra_lines           :  https://data.cityofchicago.org/Transportation/Metra-Lines/q8wx-dznq
+* metra_stations        :  https://data.cityofchicago.org/Transportation/Metra-Stations/nqm8-q2ym
+* pedway                :  " (probably a duplicate)
+* pedway_routes         :  https://data.cityofchicago.org/Transportation/Pedway-Routes/savp-mfks
+* riverwalk             :  https://data.cityofchicago.org/Environment-Sustainable-Development/Open-Spaces-Riverwalk/7nh7-nkau
+* streets               :  https://data.cityofchicago.org/Transportation/Street-Center-Lines/xy4z-b6aa
 
+### CTA
 * bus_routes                                         :
 * bus_stops                                          :
 * cta_bus_garages                                    :
@@ -192,8 +188,7 @@ CTA
 * rail_lines_prejct                                  :
 * rail_stations                                      :
 
-DEMOGRAPHICS
-
+### Demographics
 * births_and_birth_rates                             :
 * census_blocks_families_husband_and_wife            :
 * census_blocks_families_single_mother               :

@@ -1,5 +1,5 @@
 # coding: utf-8
-from optparse import OptionParser
+import argparse
 import os
 import glob
 from datasets import datasets
@@ -35,12 +35,14 @@ def import_shp (url, encoding):
   os.chdir("../")
 
 
-parser = OptionParser()
-parser.add_option("-c", "--create", default=False, action="store_false",
-                  help="drop existing edifice database and create from scratch")
+parser = argparse.ArgumentParser(description='Setup the postGIS Edifice database and populate it with open datasets.')
+parser.add_argument('--create', action='store_true',
+                   help='drop existing edifice database and create from scratch')
 
-(options, args) = parser.parse_args()
-if options.create :
+args = parser.parse_args()
+
+if args.create :
+  print 'setting up edifice database from scratch'
   os.system("dropdb edifice")
   os.system("createdb -T base_postgis edifice")
   os.system("psql -d edifice -f sql_init_scripts/pins_master.sql")
@@ -51,10 +53,10 @@ if options.create :
   else:
     os.system("curl -o import/pins.dump http://dl.dropbox.com/u/14915791/pins.dump")
 
-  print "loading property pins"
+  print "loading property pins..."
   os.system("pg_restore -O -c -d edifice import/pins.dump")
 
-print "pulling shapefile datasets from data.cityofchicago.org"
+print "importing datasets from open data portals. this will take a while..."
 
 for d in datasets:
   process_data(d)
