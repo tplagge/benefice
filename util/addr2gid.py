@@ -53,7 +53,7 @@ def fetch_street_database(conn=None):
 def string_to_addr(addr_str,street_database=None,conn=None):
   "Converts an address string into an address tuple."
   if street_database==None: street_database=fetch_street_database(conn=conn)
-  addr_split=addr.split()
+  addr_split=addr_str.split()
 
   # Check for dash in number, such as 4447-4449 N Malden St.  
   # If it exists, use just the address before the dash.
