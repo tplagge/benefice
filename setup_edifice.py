@@ -51,6 +51,7 @@ if args.create :
   if os.path.exists("import/pins.dump"):
     print "pins.dump exists"
   else:
+    print 'fetching pins.dump...'
     os.system("curl -o import/pins.dump http://dl.dropbox.com/u/14915791/pins.dump")
 
   print "loading property pins..."
