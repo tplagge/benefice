@@ -30,7 +30,7 @@ def import_shp (url, encoding):
       shapefile = f
       print 'importing ', shapefile
 
-  os.system("shp2pgsql -d -s 3435 -W LATIN1 -g the_geom -I %s | psql -q -d edifice" % (shapefile,))
+  os.system("shp2pgsql -d -s 3435 -W LATIN1 -g the_geom -I '%s' | psql -q -d edifice" % (shapefile,))
   os.system("rm *")
   os.chdir("../")
 
