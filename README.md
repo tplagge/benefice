@@ -35,7 +35,7 @@ A database of the built environment in Chicago using open data
 
 [QGIS](http://qgis.org) is a free, open-source [GIS](http://en.wikipedia.org/wiki/Geographic_information_system) application that can connect directly to a PostGIS database and display and analyze geographic data.
 
-[TileMill](http://mapbox.com/tilemilll) is a map-design studio that can also connect directly to a PostGIS datastore and create interactive web maps using [OpenStreetMap](http://openstreetmap.org) as the base layer.
+[TileMill](http://mapbox.com/tilemill) is a map-design studio that can also connect directly to a PostGIS datastore and create interactive web maps using [OpenStreetMap](http://openstreetmap.org) as the base layer.
 
 ## Data Sources
 
