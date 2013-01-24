@@ -9,6 +9,34 @@ A database of the built environment in Chicago using open data
 * wget
 * unzip
 
+## Connecting
+
+### Parameters
+
+* Database Name: edifice
+* Host: ec2-23-22-87-229.compute-1.amazonaws.com
+* Port: 5432
+* Username: opengov
+* Password: hacknightchi312
+
+### Connection Examples
+
+#### psql
+
+`psql -d edifice -h ec2-23-22-87-229.compute-1.amazonaws.com -p 5432 -U opengov`
+
+#### Python 
+
+`import psycopg2`
+
+`conn = psycopg2.connect(dbname='edifice', host='ec2-23-22-87-229.compute-1.amazonaws.com', port=5432, user='opengov', password='hacknightchi312')`
+
+#### QGIS and TileMill
+
+[QGIS](http://qgis.org) is a free, open-source [GIS](http://en.wikipedia.org/wiki/Geographic_information_system) application that can connect directly to a PostGIS database and display and analyze geographic data.
+
+[TileMill](http://mapbox.com/tilemilll) is a map-design studio that can also connect directly to a PostGIS datastore and create interactive web maps using [OpenStreetMap](http://openstreetmap.org) as the base layer.
+
 ## Data Sources
 
 ### Buildings
