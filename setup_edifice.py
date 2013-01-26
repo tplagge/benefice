@@ -102,9 +102,6 @@ def import_shp (name, url, encoding):
   if not os.path.exists('import'):
     os.makedirs('import')
   
-  #os.chdir("import")
-  print ("wget --no-check-certificate -O import/%s %s" % (name_zip, url,))
-
   cmd_split = "wget --no-check-certificate -O".split()
   cmd_split.append(name_zip)
   cmd_split.append(url)
@@ -197,7 +194,7 @@ if args.init:
     call_or_fail("dropdb -U postgres --interactive %s" % EDIFICE_DB)
     
   if('base_postgis' in db_names):
-    # make base_postgis deleteable
+    # Make base_postgis deleteable
     call_psql_or_fail("psql -U postgres -d postgres", "UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
     call_or_fail("dropdb -U postgres --interactive base_postgis")
 
@@ -209,13 +206,13 @@ if args.init:
   # call_or_fail("createlang plpgsql base_postgis")
 
   if (minor_version == 0):
-    # get the sharedir from pg_config and verify the existence of postgis.sql and spatial_ref_sys.sql
+    # Get the sharedir from pg_config and verify the existence of postgis.sql and spatial_ref_sys.sql
     share_dirname = get_postgres_sharedir()
     print "share_dirname is " , share_dirname
 
     postgis_fnames = []
     postgis_basenames = ['postgis.sql', 'postgis_comments.sql', 'spatial_ref_sys.sql']
-    # optional postgis scripts not currently included in base install:
+    # Optional postgis scripts not currently included in base install:
     # raster_comments.sql, rtpostgis.sql, topology.sql, topology_comments.sql
     for postgis_basename in postgis_basenames:
       fname = os.path.join(share_dirname, 'contrib/postgis-2.0/%s' % postgis_basename)
