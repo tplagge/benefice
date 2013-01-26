@@ -4,10 +4,11 @@ A database of the built environment in Chicago using open data
 
 ## Requirements
 
-* PostGIS
-* Python
+* PostgreSQL (9.0.x or later; 9.1.x+ preferred)
+* PostGIS (2.0.x or later)
+* Python (2.7.x or later)
+* curl
 * wget
-* unzip
 
 ## Connecting
 
@@ -37,7 +38,29 @@ A database of the built environment in Chicago using open data
 
 [TileMill](http://mapbox.com/tilemill) is a map-design studio that can also connect directly to a PostGIS datastore and create interactive web maps using [OpenStreetMap](http://openstreetmap.org) as the base layer.
 
+#### Using setup_edifice.py
+
+setup_edifice.py is used to recreate the edifice database on a system
+with a PostgreSQL database installed (with PostGIS 2.0.x+ support).
+
+* `python2.7 setup_edifice.py --init` will drop and recreate from scratch a `base_postgis` template database, using the 'postgres' admin user.
+* `python2.7 setup_edifice.py --create` will drop and recreate from scratch an `edifice` database struture, using the 'edifice' user.
+* `python2.7 setup_edifice.py --data` will download, unzip, and import City of Chicago data into the `edifice` database. [NOTE: WORK IN PROGRESS]
+
+Optional flags:
+
+* `--bindir [DIRNAME]`: specify the location of PostgreSQL binaries such as pg_config, psql, etc.
+* `--user [USERNAME]`: use a username other than 'edifice' as the owner of the main database.
+* `--database [DBNAME]`: use a name other than 'edifice' for the main database.
+* `--help`: provide usage info
+
 ## Data Sources
+
+### Spreadsheet
+
+NOTE: See
+https://docs.google.com/spreadsheet/ccc?key=0AtbqcVh3dkAqdGdlcWd5MzRYcGJkS1RoQTM3Qzd4dUE
+for an up-to-date breakdown of datasets.
 
 ### Buildings
 * buildings, buildings_bldg_name, buildings_nonstandard, cbd_bldg_names, address, year_built, sqft, stories, university_bldg_names, ohare_bldg_names: https://data.cityofchicago.org/Buildings/Building-Footprints/w2v3-isjw
