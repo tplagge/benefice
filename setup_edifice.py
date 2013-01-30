@@ -14,6 +14,7 @@ EDIFICE_USER = 'edifice'
 EDIFICE_DB = 'edifice'
 POSTGRES_BINDIRNAME = None
 POSTGRES_SUPERUSER = 'postgres'
+POSTGRES_HOST = 'localhost'
 
 # Optional argument for directory location of pg_config
 def get_postgres_version(bindir=None):
@@ -65,7 +66,8 @@ def get_postgres_sharedir():
 def call_args_or_fail(cmd_args_list):
   print ' '.join(cmd_args_list)
   try:
-    call(cmd_args_list,stderr=subprocess.STDOUT)
+    retval = call(cmd_args_list,stderr=subprocess.STDOUT)
+    print "retval is", retval
   except CalledProcessError as e:
     print e.output
     sys.exit(1)
@@ -73,14 +75,43 @@ def call_args_or_fail(cmd_args_list):
     print "\n" + "Ctrl-C'd by user"
     sys.exit(1)
     
-def call_or_fail(cmd):
-  call_args_or_fail(cmd.split())
+def call_or_fail(cmd, user=None, interactive=False, template=None, encoding=None, database=None, fname=None, sql_command=None):
+    psql_split = cmd.split()
+    if (user):
+      psql_split.extend(["-U",user])
 
-# For running SQL commands via psql -c
-def call_psql_or_fail(psql_cmd, sql_cmd):
-    psql_split = psql_cmd.split()
-    psql_split.append("-c " + sql_cmd)
+    # add host flag automatically
+    psql_split.extend(["-h", POSTGRES_HOST])
+
+    if (interactive):
+      psql_split.append("--interactive")
+
+    if (template):
+      psql_split.extend(["-T",template])
+
+    if (encoding):
+      psql_split.extend(["-E",encoding])
+
+    if not database:
+      print "Database not specified in call to %s" % cmd
+      sys.exit(1)
+    else:
+      if ((cmd == 'dropdb') or (cmd == 'createdb')):
+        psql_split.append(database)
+      else: # e.g. 'psql'
+        psql_split.extend(["-d",database])
+
+    if (fname):
+      psql_split.extend(["-f",fname])
+      
+    if (sql_command):
+      psql_split.extend(["-c","%s" % sql_command])
+
     call_args_or_fail(psql_split)
+
+# This just takes a command without wrapping the args as in call_or_fail() above.
+def call_raw_or_fail(cmd):
+  call_args_or_fail(cmd.split())
 
 def process_data(dataset):
   name =        dataset[0]
@@ -154,9 +185,13 @@ parser.add_argument('--user', nargs='?', type=str,
                    help="Postgres username for accessing edifice database (e.g. during --create or --data) [default: 'edifice']")
 parser.add_argument('--superuser', nargs='?', type=str, 
                    help="Postgres superuser name for creating edifice database (e.g. during --init) [default: 'postgres']")
+parser.add_argument('--host', nargs='?', type=str, 
+                   help="Postgres host [default: 'localhost']")
 parser.add_argument('--database', nargs='?', type=str,
                    help="Name for edifice database [default: 'edifice']")
 args = parser.parse_args()
+
+print "args is", args
 
 # Handle --bindir [directory w/ postgres binaries]
 if args.bindir:
@@ -193,18 +228,20 @@ if args.init:
   print 'Initializing postgres with a basic PostGIS template using the postgres superuser.'
   # See if database base_postgis exists
   db_names = get_postgres_database_list()
-  if ('%s' % EDIFICE_DB in db_names):
+  print "db_names is ", db_names
+  print "EDIFICE_DB is " ,EDIFICE_DB
+  if (EDIFICE_DB in db_names):
     print("Deleting the MAIN edifice database in '%s'!" % EDIFICE_DB)
-    call_or_fail("dropdb -U %s --interactive %s" % (POSTGRES_SUPERUSER, EDIFICE_DB))
+    call_or_fail("dropdb",user=POSTGRES_SUPERUSER, interactive=True, database=EDIFICE_DB)
     
   if('base_postgis' in db_names):
     # Make base_postgis deleteable
-    call_psql_or_fail("psql -U %s -d postgres" % POSTGRES_SUPERUSER, "UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
-    call_or_fail("dropdb -U %s --interactive base_postgis" % POSTGRES_SUPERUSER)
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
+    call_or_fail("dropdb", user=POSTGRES_SUPERUSER, interactive=True, database="base_postgis")
 
   # This could be template1, except I was having problems with my
   # template1 being in ASCII explictly on my 9.0 install
-  call_or_fail("createdb -U %s -T template0 -E UTF8 base_postgis" % POSTGRES_SUPERUSER)
+  call_or_fail("createdb", user=POSTGRES_SUPERUSER, template="template0", encoding="UTF8", database= "base_postgis")
 
   # Note: This doesn't seem necessary as the templates in 9.0 and 9.2 seem to have this included.
   # call_or_fail("createlang plpgsql base_postgis")
@@ -226,42 +263,36 @@ if args.init:
       else:
         postgis_fnames.append(fname)
 
-    postgis_sql_cmds = []
-    for fname in postgis_fnames:  
-      postgis_sql_cmds.append('psql -U %s -d base_postgis -f %s' % (POSTGRES_SUPERUSER, fname))
+    for fname in postgis_fnames:
+      call_or_fail('psql', user=POSTGRES_SUPERUSER, database="base_postgis", fname=fname)
 
-    for cmd in postgis_sql_cmds:
-      call_or_fail(cmd)
-
-    call_psql_or_fail("psql -U %s -d postgres" % POSTGRES_SUPERUSER, "UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command ="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
 
   elif (minor_version >= 1):
     # Instead of the above, just do 'CREATE EXTENSION postgis' if we are using 9.1 or later
-    call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "CREATE EXTENSION postgis;")
-    call_psql_or_fail("psql -U %s -d postgres" % POSTGRES_SUPERUSER, "UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
+    call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION postgis;")
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
                       
   # Allow non-superusers to alter spatial tables
-  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER,"GRANT ALL ON geometry_columns TO PUBLIC;")
-  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "GRANT ALL ON geography_columns TO PUBLIC;")
-  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "GRANT ALL ON spatial_ref_sys TO PUBLIC;")
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON geometry_columns TO PUBLIC;")
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON geography_columns TO PUBLIC;")
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON spatial_ref_sys TO PUBLIC;")
 
   # Finally, give a user 'edifice' permission to alter the database with 'createdb' permission
   # Note: This does not check to see if a 'edifice' user already exists.
-  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "CREATE USER %s;" % EDIFICE_USER)
-  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "ALTER USER %s createdb;" % EDIFICE_USER)
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="CREATE USER %s;" % EDIFICE_USER)
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="ALTER USER %s createdb;" % EDIFICE_USER)
 
 # Handle --create [reconstruction of edifice database using the edifice user account]
 if args.create :
   print 'setting up edifice database from scratch'
 
-  cmd = "dropdb -U %s --interactive %s" % (EDIFICE_USER, EDIFICE_DB)
-  call_or_fail(cmd)
+  call_or_fail("dropdb", user=EDIFICE_USER, interactive=True, database=EDIFICE_DB)
 
-  cmd = "createdb -U %s -T base_postgis %s" % (EDIFICE_USER, EDIFICE_DB)
-  call_or_fail(cmd)
+  call_or_fail("createdb", user=EDIFICE_USER, template="base_postgis", database=EDIFICE_DB)
   
-  call_or_fail("psql -U %s -d %s -f sql_init_scripts/pins_master.sql" % (EDIFICE_USER, EDIFICE_DB))
-  call_or_fail("psql -U %s -d %s -f sql_init_scripts/assessed.sql" % (EDIFICE_USER, EDIFICE_DB))
+  call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/pins_master.sql")
+  call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
   #call_or_fail("psql -U %s -d %s -f sql_init_scripts/edifice_initialization_script.sql" % (EDIFICE_USER, EDIFICE_DB))
 
   if os.path.exists("import/pins.dump"):
@@ -270,7 +301,7 @@ if args.create :
     print 'Fetching pins.dump...'
     call_or_fail("curl -o import/pins.dump http://dl.dropbox.com/u/14915791/pins.dump")
   print "Loading property pins..."
-  call_or_fail("pg_restore -U %s -O -c -d %s import/pins.dump" % (EDIFICE_USER, EDIFICE_DB))
+  call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s import/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
 
 if args.data:
   print "Importing datasets from open data portals. this will take a while..."
