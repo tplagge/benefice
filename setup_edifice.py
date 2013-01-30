@@ -9,6 +9,8 @@ import sys
 import re
 import string
 import zipfile
+import csv
+import httplib, json, psycopg2
 
 EDIFICE_USER = 'edifice'
 EDIFICE_DB = 'edifice'
@@ -92,8 +94,56 @@ def process_data(dataset):
   # format: https://data.cityofchicago.org/download/5gv8-ktcg/application/zip
   if (domain == 'Chicago' and data_type == 'shp'):
     url = "http://data.cityofchicago.org/download/%s/application/zip" % (socrata_id,)
+    import_shp(name, url, options)
+  elif (domain == 'Chicago' and data_type == 'json'):
+    hostname = 'data.cityofchicago.org'
+    import_json(name, hostname, socrata_id, options)
+  else:
+    print 'ERROR: unknown domain or data type for '+str(name)
+    sys.exit(1)
 
-  import_shp(name, url, options)
+def import_json (name, hostname, socrata_id, options):
+  # Get the header information
+  conn = httplib.HTTPConnection(hostname)
+  conn.request('GET','/api/views/%s.json' % (socrata_id,))
+  r1 = conn.getresponse()
+  # Make sure it succeeded
+  assert r1.status==200
+  resp=json.loads(r1.read())
+  # Make sure it has columns
+  assert u'columns' in resp.keys()
+
+  # Start building the db command
+  db_command_args=[name]
+  db_command='CREATE TABLE %s ( '
+
+  # Loop through columns, adding appropriate arguments to db command.
+  for column in resp[u'columns']:
+    db_command=db_command+'%s %s,'
+    db_command_args.append(column[u'fieldName'])
+    field_type=column[u'dataTypeName']
+    if field_type==u'number':
+      if ('.' not in column[u'cachedContents'][u'smallest']) and \
+         ('.' not in column[u'cachedContents'][u'largest'])  and \
+         ('.' not in column[u'cachedContents'][u'sum']):
+        db_command_args.append('integer')
+      else:
+        db_command_args.append('double precision')
+    elif field_type==u'calendar_date':
+      db_command_args.append('date')
+    elif field_type==u'checkbox':
+      db_command_args.append('boolean')
+    else:
+      db_command_args.append('text')
+
+  # Cut off the last comma and close off the command.
+  db_command=db_command[:-1]+');'
+
+  # Connect to the db and issue the command.
+  db_conn=psycopg2.connect(\
+    database=EDIFICE_DB, user=EDIFICE_USER)
+  cur=db_conn.cursor()
+  cur.execute(db_command,db_command_args)
 
 # Function to wget, unzip, shp2pgsql | psql, and rm in the subdirectory 'import/'
 def import_shp (name, url, encoding):
