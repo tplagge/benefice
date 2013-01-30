@@ -15,6 +15,7 @@ import httplib, json, psycopg2
 EDIFICE_USER = 'edifice'
 EDIFICE_DB = 'edifice'
 POSTGRES_BINDIRNAME = None
+POSTGRES_SUPERUSER = 'postgres'
 
 # Optional argument for directory location of pg_config
 def get_postgres_version(bindir=None):
@@ -175,8 +176,7 @@ def import_shp (name, url, encoding):
   shapefile = None
   for fname in glob.glob("import/*.shp"):
       shapefile_name = fname
-      print 'importing ', shapefile_name
-      print type(shapefile_name)
+      print 'Importing ', shapefile_name
       shp2pgsql_cmd= 'shp2pgsql -d -s 3435 -W LATIN1 -g the_geom -I %s' % shapefile_name
       shp2pgsql_cmd_list = shp2pgsql_cmd.split()
       psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
@@ -201,14 +201,15 @@ parser.add_argument('--data', action='store_true',
 parser.add_argument('--bindir', nargs='?', type=str,
                     help='Directory location of PostgreSQL binaries (e.g. pg_config, psql)')
 parser.add_argument('--user', nargs='?', type=str, 
-                   help="Postgres username for creating/accessing edifice database (e.g. during --create or --data) [default: 'edifice']")
+                   help="Postgres username for accessing edifice database (e.g. during --create or --data) [default: 'edifice']")
+parser.add_argument('--superuser', nargs='?', type=str, 
+                   help="Postgres superuser name for creating edifice database (e.g. during --init) [default: 'postgres']")
 parser.add_argument('--database', nargs='?', type=str,
                    help="Name for edifice database [default: 'edifice']")
 args = parser.parse_args()
 
 # Handle --bindir [directory w/ postgres binaries]
 if args.bindir:
-  print "args.bindir=", args.bindir
   POSTGRES_BINDIRNAME = args.bindir
 
   # Check if we can find pg_config in this directory. If this fails, we can't find it.
@@ -224,6 +225,9 @@ if args.bindir:
 
 if args.user:
   EDIFICE_USER = args.user
+
+if args.superuser:
+  POSTGRES_SUPERUSER = args.superuser
 
 if args.database:
   EDIFICE_DB = args.database
@@ -241,16 +245,16 @@ if args.init:
   db_names = get_postgres_database_list()
   if ('%s' % EDIFICE_DB in db_names):
     print("Deleting the MAIN edifice database in '%s'!" % EDIFICE_DB)
-    call_or_fail("dropdb -U postgres --interactive %s" % EDIFICE_DB)
+    call_or_fail("dropdb -U %s --interactive %s" % (POSTGRES_SUPERUSER, EDIFICE_DB))
     
   if('base_postgis' in db_names):
     # Make base_postgis deleteable
-    call_psql_or_fail("psql -U postgres -d postgres", "UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
-    call_or_fail("dropdb -U postgres --interactive base_postgis")
+    call_psql_or_fail("psql -U %s -d postgres" % POSTGRES_SUPERUSER, "UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
+    call_or_fail("dropdb -U %s --interactive base_postgis" % POSTGRES_SUPERUSER)
 
   # This could be template1, except I was having problems with my
   # template1 being in ASCII explictly on my 9.0 install
-  call_or_fail("createdb -U postgres -T template0 -E UTF8 base_postgis" )
+  call_or_fail("createdb -U %s -T template0 -E UTF8 base_postgis" % POSTGRES_SUPERUSER)
 
   # Note: This doesn't seem necessary as the templates in 9.0 and 9.2 seem to have this included.
   # call_or_fail("createlang plpgsql base_postgis")
@@ -274,27 +278,27 @@ if args.init:
 
     postgis_sql_cmds = []
     for fname in postgis_fnames:  
-      postgis_sql_cmds.append('psql -U postgres -d base_postgis -f %s' % fname)
+      postgis_sql_cmds.append('psql -U %s -d base_postgis -f %s' % (POSTGRES_SUPERUSER, fname))
 
     for cmd in postgis_sql_cmds:
       call_or_fail(cmd)
 
-    call_psql_or_fail("psql -U postgres -d postgres", "UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
+    call_psql_or_fail("psql -U %s -d postgres" % POSTGRES_SUPERUSER, "UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
 
   elif (minor_version >= 1):
     # Instead of the above, just do 'CREATE EXTENSION postgis' if we are using 9.1 or later
-    call_psql_or_fail("psql -U postgres -d base_postgis", "CREATE EXTENSION postgis;")
-    call_psql_or_fail("psql -U postgres -d postgres", "UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
+    call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "CREATE EXTENSION postgis;")
+    call_psql_or_fail("psql -U %s -d postgres" % POSTGRES_SUPERUSER, "UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
                       
   # Allow non-superusers to alter spatial tables
-  call_psql_or_fail("psql -U postgres -d base_postgis","GRANT ALL ON geometry_columns TO PUBLIC;")
-  call_psql_or_fail("psql -U postgres -d base_postgis", "GRANT ALL ON geography_columns TO PUBLIC;")
-  call_psql_or_fail("psql -U postgres -d base_postgis", "GRANT ALL ON spatial_ref_sys TO PUBLIC;")
+  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER,"GRANT ALL ON geometry_columns TO PUBLIC;")
+  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "GRANT ALL ON geography_columns TO PUBLIC;")
+  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "GRANT ALL ON spatial_ref_sys TO PUBLIC;")
 
   # Finally, give a user 'edifice' permission to alter the database with 'createdb' permission
   # Note: This does not check to see if a 'edifice' user already exists.
-  call_psql_or_fail("psql -U postgres -d base_postgis", "CREATE USER %s;" % EDIFICE_USER)
-  call_psql_or_fail("psql -U postgres -d base_postgis", "ALTER USER %s createdb;" % EDIFICE_USER)
+  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "CREATE USER %s;" % EDIFICE_USER)
+  call_psql_or_fail("psql -U %s -d base_postgis" % POSTGRES_SUPERUSER, "ALTER USER %s createdb;" % EDIFICE_USER)
 
 # Handle --create [reconstruction of edifice database using the edifice user account]
 if args.create :
