@@ -69,7 +69,6 @@ def call_args_or_fail(cmd_args_list):
   print ' '.join(cmd_args_list)
   try:
     retval = call(cmd_args_list,stderr=subprocess.STDOUT)
-    print "retval is", retval
   except CalledProcessError as e:
     print e.output
     sys.exit(1)
