@@ -1,11 +1,13 @@
 # format [name, domain, data_type, socrata_id, options]
 
 datasets = [
-  # buildings
+ # buildings
  ['Building Footprints','Chicago','shp','w2v3-isjw',{'encoding': 'LATIN1'}],
  ['Boundaries - Curb Lines','Chicago','shp','5gv8-ktcg',{'encoding': 'LATIN1'}],
+ ['Building Permits','Chicago','csv','ydr8-5enu',{}],
+ ['Building Violations','Chicago','csv','22u3-xenr',{}],
   
-  # boundaries
+ # boundaries
  ['2010 Census Blocks','Chicago','shp','3jmu-7ijz',{'encoding': 'LATIN1'}],
  ['2010 Census Tracts','Chicago','shp','biqm-wjk3',{'encoding': 'LATIN1'}],
  ['Central Business District','Chicago','shp','uagp-hcv5',{}],
@@ -29,4 +31,76 @@ datasets = [
  ['winterovernightparkingrestrictions','Chicago','shp','kpim-yiyf',{}],
  ['zip_codes','Chicago','shp','2ka6-iycf',{}],
  ['zoning_aug2012','Chicago','shp','p8va-airx',{}],
+
+ # county
+
+ # businesses
+ ['business_licenses','Chicago','csv','r5kz-chrr',{}],
+ ['business_owners','Chicago','csv','ezma-pppn',{}],
+
+ # civic
+ ['cemeteries','Chicago','kml','zu2x-8zyf',{}],
+ ['contracts','Chicago','csv','rsxa-ify5',{}],
+ ['cook_co_facilities_in_chicago','Chicago','csv','wse8-j3xr',{}],
+ ['elevation_benchmarks','Chicago','csv','zgvr-7yfd',{}],
+ ['public_plazas','Chicago','shp','ixxk-b6xq',{}],
+ ['public_tech_resources','Chicago','csv','nen3-vcxj',{}],
+ ['senior_centers','Chicago','csv','qhfc-4cw2',{}],
+ ['youth_centers','Chicago','csv','meks-hp6f',{}],
+
+ # tif
+ ['tif_districts','Chicago','shp','iyec-2es5',{}],
+
+ # safety
+ ['fire_stations','Chicago','csv','28km-gtjn',{}],
+ ['life_safety_evaluations','Chicago','csv','qqqh-hgyw',{}],
+ ['police_beats','Chicago','shp','kd6k-pxkv',{}],
+ ['police_beats_new','Chicago','shp','dq28-4w9c',{'platform': 'mondara'}],
+ ['police_stations','Chicago','csv','z8bn-74gv',{}],
+
+ # historic landmarks
+ ['historic_districts','Chicago','shp','yw5d-szpx',{'encoding': 'LATIN1'}],
+ ['historic_resources','Chicago','shp','yw5d-szpx',{'encoding': 'LATIN1'}],
+ ['landmarks','Chicago','csv','2h6e-2yk6',{}],
+ 
+ # health
+ ['asthma_hospitalizations','Chicago','csv','vazh-t57q',{}],
+ ['chlamydia_females_15_44','Chicago','csv','bz6k-73ti',{}],
+ ['condom_distribution_sites','Chicago','csv','azpf-uc4s',{}],
+ ['deaths','Chicago','csv','j6cj-r444',{}],
+ ['diabetes_hospitalizations','Chicago','csv','vekt-28b5',{}],
+ ['food_inspection','Chicago','csv','4ijn-s7e5',{}],
+ ['gonorrhea_females_15_44','Chicago','csv','cgjw-mn43',{}],
+ ['gonorrhea_males_15_44','Chicago','csv','m5qn-gmjx',{}],
+ ['hospitals','Chicago','shp','ucpz-2r55',{}],
+ ['infant_mortality','Chicago','csv','bfhr-4ckq',{}],
+ ['lead_screening_children','Chicago','csv','v2z5-jyrq',{}],
+ ['low_birth_weight','Chicago','csv','fbxr-9u99',{}],
+ ['mental_health_clinics','Chicago','csv','v56e-cy8y',{}],
+ ['neighborhood_health_clinics','Chicago','csv','mw69-m6xi',{}],
+ ['prenatal_care','Chicago','csv','2q9j-hh6g',{}],
+ ['sti_specialty_clinics','Chicago','csv','aewr-nzrt',{}],
+ ['tuberculosis','Chicago','csv','ndk3-zftj',{}],
+ ['wic_offices','Chicago','csv','g85x-gwmp',{}],
+ 
+ # environment
+ ['farmers_markets_2012','Chicago','csv','hu6v-hsqb',{}],
+
+ # education
+ 
+ # transportation
+ ['bike_racks','Chicago','csv','cbyb-69xx',{}],
+ ['bike_routes','Chicago','shp','2wak-k8cp',{}],
+ ['boulevards','Chicago','shp','sd36-arzm',{}],
+ ['cook_co_hwy_juris','Chicago','shp','2b73-3uqk',{}],
+ ['major_streets','Chicago','shp','ueqs-5wr6',{}],
+ ['metra_lines','Chicago','shp','q8wx-dznq',{}],
+ ['metra_stations','Chicago','shp','nqm8-q2ym',{}],
+ ['pedway_routes','Chicago','shp','savp-mfks',{}],
+ ['riverwalk','Chicago','shp','7nh7-nkau',{}],
+ ['streets','Chicago','shp','xy4z-b6aa',{}],
+
+ # CTA
+
+ # demographics
 ]

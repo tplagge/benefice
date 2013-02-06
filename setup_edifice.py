@@ -125,15 +125,18 @@ def process_data(dataset):
 
   url = ''
   # format: https://data.cityofchicago.org/download/5gv8-ktcg/application/zip
-  if (domain == 'Chicago' and data_type == 'shp'):
-    url = "http://data.cityofchicago.org/download/%s/application/zip" % (socrata_id,)
-    import_shp(name, url, options.setdefault('encoding',''))
-  elif (domain == 'Chicago' and data_type == 'json'):
-    hostname = 'data.cityofchicago.org'
-    import_json(name, hostname, socrata_id, options.setdefault('encoding',''))
-  else:
-    print 'ERROR: unknown domain or data type for '+str(name)
-    sys.exit(1)
+  if (domain == 'Chicago'):
+    if data_type == 'shp':
+      url = "http://data.cityofchicago.org/download/%s/application/zip" % (socrata_id,)
+      if 'platform' in options and options['platform'] == 'mondara':
+        url = "https://data.cityofchicago.org/api/geospatial/%s?method=export&format=Shapefile" % (socrata_id,)
+      
+      import_shp(name, url, options.setdefault('encoding',''))
+    elif data_type == 'json':
+      hostname = 'data.cityofchicago.org'
+      import_json(name, hostname, socrata_id, options.setdefault('encoding',''))
+    else:
+      print 'ERROR: unknown domain or data type', data_type, 'for', name
 
 def import_json (name, hostname, socrata_id, options):
   # Get the header information
@@ -210,7 +213,9 @@ def import_shp (name, url, encoding):
   for fname in glob.glob("import/*.shp"):
       shapefile_name = fname
       print 'Importing ', shapefile_name
-      shp2pgsql_cmd= 'shp2pgsql -d -s 3435 -W LATIN1 -g the_geom -I %s' % shapefile_name
+      if encoding:
+        encoding = '-W ' + encoding
+      shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s' % (shapefile_name,encoding)
       shp2pgsql_cmd_list = shp2pgsql_cmd.split()
       psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
       p1 = Popen(shp2pgsql_cmd_list, stdout=subprocess.PIPE)
@@ -223,7 +228,7 @@ def import_shp (name, url, encoding):
     print "Deleting:", fname
     os.remove(fname)
 
-  if not DELETE_DOWNLOADS:
+  if DELETE_DOWNLOADS:
     print "deleting %s" % name_zip
     os.remove(name_zip)
 
@@ -379,6 +384,7 @@ if args.data:
   print "Importing datasets from open data portals. this will take a while..."
   for d in datasets:
     process_data(d)
+  print '======= Done! Happy Edificing! ======='
 
 
 # if no actionable args, print out help message!
