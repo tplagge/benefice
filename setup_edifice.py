@@ -240,7 +240,7 @@ parser.add_argument('--database', nargs='?', type=str,
                    help="Name for edifice database [default: 'edifice']")
 args = parser.parse_args()
 
-print "args is", args
+#print "args is", args
 
 # Handle --bindir [directory w/ postgres binaries]
 if args.bindir:
@@ -356,3 +356,8 @@ if args.data:
   print "Importing datasets from open data portals. this will take a while..."
   for d in datasets:
     process_data(d)
+
+
+# if no actionable args, print out help message!
+if ((not args.init) and (not args.create) and (not args.data)):
+  parser.print_help()
