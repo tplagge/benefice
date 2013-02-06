@@ -77,7 +77,7 @@ def call_args_or_fail(cmd_args_list):
     print "\n" + "Ctrl-C'd by user"
     sys.exit(1)
     
-def call_or_fail(cmd, user=None, interactive=False, template=None, encoding=None, database=None, fname=None, sql_command=None):
+def call_or_fail(cmd, user=None, interactive=False, template=None, encoding=None, database=None, fname=None, sql_command=None, argument=None):
     psql_split = cmd.split()
     if (user):
       psql_split.extend(["-U",user])
@@ -94,13 +94,7 @@ def call_or_fail(cmd, user=None, interactive=False, template=None, encoding=None
     if (encoding):
       psql_split.extend(["-E",encoding])
 
-    if not database:
-      print "Database not specified in call to %s" % cmd
-      sys.exit(1)
-    else:
-      if ((cmd == 'dropdb') or (cmd == 'createdb')):
-        psql_split.append(database)
-      else: # e.g. 'psql'
+    if (database):
         psql_split.extend(["-d",database])
 
     if (fname):
@@ -108,6 +102,13 @@ def call_or_fail(cmd, user=None, interactive=False, template=None, encoding=None
       
     if (sql_command):
       psql_split.extend(["-c","%s" % sql_command])
+
+    if ((cmd == 'dropdb') or (cmd == 'createdb') or (cmd=='dropuser')):
+      if not argument:
+        print "Argument not specified in call to %s" % cmd
+        sys.exit(1)
+      else:
+        psql_split.append(argument)
 
     call_args_or_fail(psql_split)
 
@@ -292,16 +293,21 @@ if args.create_template:
   print "EDIFICE_DB is " ,EDIFICE_DB
   if (EDIFICE_DB in db_names):
     print("Deleting the MAIN edifice database in '%s'!" % EDIFICE_DB)
-    call_or_fail("dropdb",user=POSTGRES_SUPERUSER, interactive=True, database=EDIFICE_DB)
+    call_or_fail("dropdb",user=POSTGRES_SUPERUSER, interactive=True, argument=EDIFICE_DB)
+
+  # We should drop the edifice user (we will be recreating it and its roles).
+  #if (EDIFICE_USER != 'postgres'):
+  #  # XXX, this could potentially be uncool if the client has a superuser not called 'postgres'?
+  #  call_or_fail("dropuser", user=POSTGRES_SUPERUSER, interactive=True, argument=EDIFICE_USER)
     
   if('base_postgis' in db_names):
     # Make base_postgis deleteable
     call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
-    call_or_fail("dropdb", user=POSTGRES_SUPERUSER, interactive=True, database="base_postgis")
+    call_or_fail("dropdb", user=POSTGRES_SUPERUSER, interactive=True, argument="base_postgis")
 
   # This could be template1, except I was having problems with my
   # template1 being in ASCII explictly on my 9.0 install
-  call_or_fail("createdb", user=POSTGRES_SUPERUSER, template="template0", encoding="UTF8", database= "base_postgis")
+  call_or_fail("createdb", user=POSTGRES_SUPERUSER, template="template0", encoding="UTF8", argument= "base_postgis")
 
   # Note: This doesn't seem necessary as the templates in 9.0 and 9.2 seem to have this included.
   # call_or_fail("createlang plpgsql base_postgis")
@@ -330,7 +336,8 @@ if args.create_template:
 
   elif (minor_version >= 1):
     # Instead of the above, just do 'CREATE EXTENSION postgis' if we are using 9.1 or later
-    call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION postgis;")
+    #call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION postgis;")
+    call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;")
     call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
                       
   # Allow non-superusers to alter spatial tables
@@ -347,13 +354,18 @@ if args.create_template:
 if args.create :
   print 'setting up edifice database from scratch'
 
-  call_or_fail("dropdb", user=EDIFICE_USER, interactive=True, database=EDIFICE_DB)
+  call_or_fail("dropdb", user=EDIFICE_USER, interactive=True, argument=EDIFICE_DB)
 
-  call_or_fail("createdb", user=EDIFICE_USER, template="base_postgis", database=EDIFICE_DB)
+  call_or_fail("createdb", user=EDIFICE_USER, template="base_postgis", argument=EDIFICE_DB)
+
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geometry_columns OWNER TO edifice;")
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geography_columns OWNER TO edifice;")
+  call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE spatial_ref_sys OWNER TO edifice;")
+
   
   call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/pins_master.sql")
-  call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
-  #call_or_fail("psql -U %s -d %s -f sql_init_scripts/edifice_initialization_script.sql" % (EDIFICE_USER, EDIFICE_DB))
+  #call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
+  call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
 
   if os.path.exists("import/pins.dump"):
     print "Note: pins.dump already exists. Not fetching it."
