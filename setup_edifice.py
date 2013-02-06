@@ -17,6 +17,7 @@ EDIFICE_DB = 'edifice'
 POSTGRES_BINDIRNAME = None
 POSTGRES_SUPERUSER = 'postgres'
 POSTGRES_HOST = 'localhost'
+DELETE_DOWNLOADS = False
 
 # Optional argument for directory location of pg_config
 def get_postgres_version(bindir=None):
@@ -125,10 +126,10 @@ def process_data(dataset):
   # format: https://data.cityofchicago.org/download/5gv8-ktcg/application/zip
   if (domain == 'Chicago' and data_type == 'shp'):
     url = "http://data.cityofchicago.org/download/%s/application/zip" % (socrata_id,)
-    import_shp(name, url, options)
+    import_shp(name, url, options.setdefault('encoding',''))
   elif (domain == 'Chicago' and data_type == 'json'):
     hostname = 'data.cityofchicago.org'
-    import_json(name, hostname, socrata_id, options)
+    import_json(name, hostname, socrata_id, options.setdefault('encoding',''))
   else:
     print 'ERROR: unknown domain or data type for '+str(name)
     sys.exit(1)
@@ -178,15 +179,15 @@ def import_json (name, hostname, socrata_id, options):
 
 # Function to wget, unzip, shp2pgsql | psql, and rm in the subdirectory 'import/'
 def import_shp (name, url, encoding):
-  name_zip = "%s.zip" % name
-
-  if not os.path.exists('import'):
-    os.makedirs('import')
+  name_zip = "%s.zip" % os.path.join('downloads', name)
   
-  cmd_split = "wget --no-check-certificate -O".split()
-  cmd_split.append(name_zip)
-  cmd_split.append(url)
-  call_args_or_fail(cmd_split)
+  if not os.path.exists(name_zip) :
+    cmd_split = "wget --no-check-certificate -O".split()
+    cmd_split.append(name_zip)
+    cmd_split.append(url)
+    call_args_or_fail(cmd_split)
+  else :
+    print '%s exists, skipping download' % name_zip
   
   try:
     zip_file = zipfile.ZipFile(name_zip, 'r')
@@ -198,6 +199,7 @@ def import_shp (name, url, encoding):
     print "Error in %s: first bad file is %s" % name_zip, first_bad_file
     sys.exit(1)
   
+  print 'extracting %s' % name_zip
   zip_file_contents = zip_file.namelist()
   for f in zip_file_contents:
     zip_file.extract(f, 'import')
@@ -220,12 +222,16 @@ def import_shp (name, url, encoding):
     print "Deleting:", fname
     os.remove(fname)
 
+  if not DELETE_DOWNLOADS:
+    print "deleting %s" % name_zip
+    os.remove(name_zip)
+
 
 parser = argparse.ArgumentParser(description='Setup the PostGIS Edifice database and populate it with open datasets.')
-parser.add_argument('--init', action='store_true',
+parser.add_argument('--create_template', action='store_true',
                    help="Run only once to create a base postgis template ('base_postgis') as the postgres superuser")
 parser.add_argument('--create', action='store_true',
-                   help='Drop existing edifice database and create from scratch based on the base_postgis database created with --init')
+                   help='Drop existing edifice database and create from scratch based on the base_postgis database created with --create_template')
 parser.add_argument('--data', action='store_true',
                    help='Download and import City of Chicago data to edifice database (as listed in datasets.py)')
 parser.add_argument('--bindir', nargs='?', type=str,
@@ -233,11 +239,13 @@ parser.add_argument('--bindir', nargs='?', type=str,
 parser.add_argument('--user', nargs='?', type=str, 
                    help="Postgres username for accessing edifice database (e.g. during --create or --data) [default: 'edifice']")
 parser.add_argument('--superuser', nargs='?', type=str, 
-                   help="Postgres superuser name for creating edifice database (e.g. during --init) [default: 'postgres']")
+                   help="Postgres superuser name for creating edifice database (e.g. during --create_template) [default: 'postgres']")
 parser.add_argument('--host', nargs='?', type=str, 
                    help="Postgres host [default: 'localhost']")
 parser.add_argument('--database', nargs='?', type=str,
                    help="Name for edifice database [default: 'edifice']")
+parser.add_argument('--delete_downloads', action='store_true',
+                   help="Keep files downloaded from the various data portals after they have been imported [default: True]")
 args = parser.parse_args()
 
 #print "args is", args
@@ -266,8 +274,11 @@ if args.superuser:
 if args.database:
   EDIFICE_DB = args.database
 
-# Handle --init [reconstruction of base_postgis template using the postgres superuser account]
-if args.init:
+if args.delete_downloads:
+  DELETE_DOWNLOADS = args.delete_downloads
+
+# Handle --create_template [reconstruction of base_postgis template using the postgres superuser account]
+if args.create_template:
   try:
     (major_version, minor_version) = get_postgres_version()
   except OSError as e:
@@ -348,7 +359,7 @@ if args.create :
     print "Note: pins.dump already exists. Not fetching it."
   else:
     print 'Fetching pins.dump...'
-    call_or_fail("curl -o import/pins.dump http://dl.dropbox.com/u/14915791/pins.dump")
+    call_args_or_fail("wget -O import/pins.dump http://dl.dropbox.com/u/14915791/pins.dump".split())
   print "Loading property pins..."
   call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s import/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
 
@@ -359,5 +370,5 @@ if args.data:
 
 
 # if no actionable args, print out help message!
-if ((not args.init) and (not args.create) and (not args.data)):
+if ((not args.create_template) and (not args.create) and (not args.data)):
   parser.print_help()
