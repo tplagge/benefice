@@ -215,7 +215,7 @@ def import_shp (name, url, encoding):
       print 'Importing ', shapefile_name
       if encoding:
         encoding = '-W ' + encoding
-      shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s' % (shapefile_name,encoding)
+      shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s' % (encoding, shapefile_name)
       shp2pgsql_cmd_list = shp2pgsql_cmd.split()
       psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
       p1 = Popen(shp2pgsql_cmd_list, stdout=subprocess.PIPE)
@@ -363,22 +363,26 @@ if args.create :
 
   call_or_fail("createdb", user=EDIFICE_USER, template="base_postgis", argument=EDIFICE_DB)
 
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geometry_columns OWNER TO edifice;")
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geography_columns OWNER TO edifice;")
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE spatial_ref_sys OWNER TO edifice;")
-
+  # XXX: Is it not necessary to make edifice the owner of these tables inherited from base_postgis?
+  #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geometry_columns OWNER TO edifice;")
+  #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geography_columns OWNER TO edifice;")
+  #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE spatial_ref_sys OWNER TO edifice;")
   
   call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/pins_master.sql")
   #call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
   call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
 
-  if os.path.exists("import/pins.dump"):
+  if os.path.exists("downloads/pins.dump"):
     print "Note: pins.dump already exists. Not fetching it."
   else:
     print 'Fetching pins.dump...'
-    call_args_or_fail("wget -O import/pins.dump http://dl.dropbox.com/u/14915791/pins.dump".split())
+    call_args_or_fail("wget -O downloads/pins.dump http://dl.dropbox.com/u/14915791/pins.dump".split())
   print "Loading property pins..."
-  call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s import/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+  call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+
+  if (DELETE_DOWNLOADS):
+    os.remove('downloads/pins.dump')
+  
 
 if args.data:
   print "Importing datasets from open data portals. this will take a while..."
