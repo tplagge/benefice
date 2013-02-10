@@ -19,7 +19,6 @@ POSTGRES_BINDIRNAME = None
 POSTGRES_SUPERUSER = 'postgres'
 POSTGRES_HOST = 'localhost'
 DELETE_DOWNLOADS = False
-SKIP_SHP2PGSQL = True
 
 # Start out with no psycopg2 connection, make it during data import ('--data')
 DB_CONN = None
@@ -226,17 +225,13 @@ def import_shp (name, url, encoding):
       if encoding:
         encoding = '-W ' + encoding
 
-      if (not SKIP_SHP2PGSQL):
-        # This will, e.g., load Building Footprints.zip into a table called 'buildings' in the schema 'dataportal'
-        shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s dataportal.%s' % (encoding, shapefile_name, name)
-        shp2pgsql_cmd_list = shp2pgsql_cmd.split()
-        psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
-        p1 = Popen(shp2pgsql_cmd_list, stdout=subprocess.PIPE)
-        print shp2pgsql_cmd, "|", psql_cmd
-        p2 = Popen(psql_cmd.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
-        stdout = p2.communicate()[0]
-      else:
-        print "skipping shp2pgsql"
+      shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s dataportal.%s' % (encoding, shapefile_name, name)
+      shp2pgsql_cmd_list = shp2pgsql_cmd.split()
+      psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
+      p1 = Popen(shp2pgsql_cmd_list, stdout=subprocess.PIPE)
+      print shp2pgsql_cmd, "|", psql_cmd
+      p2 = Popen(psql_cmd.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
+      stdout = p2.communicate()[0]
 
   # Now do the specialized import for the given dataset
   data_portal.do_import(name, DB_CONN)
