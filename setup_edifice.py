@@ -11,6 +11,7 @@ import string
 import zipfile
 import csv
 import httplib, json, psycopg2
+import data_portal
 
 EDIFICE_USER = 'edifice'
 EDIFICE_DB = 'edifice'
@@ -18,6 +19,10 @@ POSTGRES_BINDIRNAME = None
 POSTGRES_SUPERUSER = 'postgres'
 POSTGRES_HOST = 'localhost'
 DELETE_DOWNLOADS = False
+SKIP_SHP2PGSQL = True
+
+# Start out with no psycopg2 connection, make it during data import ('--data')
+DB_CONN = None
 
 # Optional argument for directory location of pg_config
 def get_postgres_version(bindir=None):
@@ -78,6 +83,8 @@ def call_args_or_fail(cmd_args_list):
     sys.exit(1)
     
 def call_or_fail(cmd, user=None, interactive=False, template=None, encoding=None, database=None, fname=None, sql_command=None, argument=None):
+    global POSTGRES_HOST
+  
     psql_split = cmd.split()
     if (user):
       psql_split.extend(["-U",user])
@@ -175,14 +182,16 @@ def import_json (name, hostname, socrata_id, options):
   # Cut off the last comma and close off the command.
   db_command=db_command[:-1]+');'
 
-  # Connect to the db and issue the command.
-  db_conn=psycopg2.connect(\
-    database=EDIFICE_DB, user=EDIFICE_USER)
-  cur=db_conn.cursor()
+  cur=DB_CONN.cursor()
   cur.execute(db_command,db_command_args)
 
 # Function to wget, unzip, shp2pgsql | psql, and rm in the subdirectory 'import/'
 def import_shp (name, url, encoding):
+  global EDIFICE_USER
+  global EDIFICE_DB
+  global DELETE_DOWNLOADS
+  global DB_CONN
+  
   name_zip = "%s.zip" % os.path.join('downloads', name)
   
   if not os.path.exists(name_zip) :
@@ -197,6 +206,7 @@ def import_shp (name, url, encoding):
     zip_file = zipfile.ZipFile(name_zip, 'r')
   except zipfile.BadZipfile as e:
     print "ERROR:", str(e)
+    print "Try removing file %s and running --data again." % name_zip
     sys.exit(1)
   first_bad_file = zip_file.testzip()
   if (first_bad_file):
@@ -208,20 +218,28 @@ def import_shp (name, url, encoding):
   for f in zip_file_contents:
     zip_file.extract(f, 'import')
   zip_file.close()
-  
+
   shapefile = None
   for fname in glob.glob("import/*.shp"):
       shapefile_name = fname
       print 'Importing ', shapefile_name
       if encoding:
         encoding = '-W ' + encoding
-      shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s' % (encoding, shapefile_name)
-      shp2pgsql_cmd_list = shp2pgsql_cmd.split()
-      psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
-      p1 = Popen(shp2pgsql_cmd_list, stdout=subprocess.PIPE)
-      print shp2pgsql_cmd, "|", psql_cmd
-      p2 = Popen(psql_cmd.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
-      stdout = p2.communicate()[0]
+
+      if (not SKIP_SHP2PGSQL):
+        # This will, e.g., load Building Footprints.zip into a table called 'buildings' in the schema 'dataportal'
+        shp2pgsql_cmd= 'shp2pgsql -d -s 3435 %s -g the_geom -I %s dataportal.%s' % (encoding, shapefile_name, name)
+        shp2pgsql_cmd_list = shp2pgsql_cmd.split()
+        psql_cmd = "psql -q -U %s -d %s" % (EDIFICE_USER, EDIFICE_DB)
+        p1 = Popen(shp2pgsql_cmd_list, stdout=subprocess.PIPE)
+        print shp2pgsql_cmd, "|", psql_cmd
+        p2 = Popen(psql_cmd.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
+        stdout = p2.communicate()[0]
+      else:
+        print "skipping shp2pgsql"
+
+  # Now do the specialized import for the given dataset
+  data_portal.do_import(name, DB_CONN)
 
   # Great. Now delete all the files in zip_file_contents
   for fname in glob.glob('import/*'):
@@ -232,165 +250,184 @@ def import_shp (name, url, encoding):
     print "deleting %s" % name_zip
     os.remove(name_zip)
 
+def main():
+  global EDIFICE_USER 
+  global EDIFICE_DB
+  global POSTGRES_BINDIRNAME
+  global POSTGRES_SUPERUSER
+  global POSTGRES_HOST
+  global DELETE_DOWNLOADS
+  global DB_CONN
 
-parser = argparse.ArgumentParser(description='Setup the PostGIS Edifice database and populate it with open datasets.')
-parser.add_argument('--create_template', action='store_true',
-                   help="Run only once to create a base postgis template ('base_postgis') as the postgres superuser")
-parser.add_argument('--create', action='store_true',
-                   help='Drop existing edifice database and create from scratch based on the base_postgis database created with --create_template')
-parser.add_argument('--data', action='store_true',
-                   help='Download and import City of Chicago data to edifice database (as listed in datasets.py)')
-parser.add_argument('--bindir', nargs='?', type=str,
-                    help='Directory location of PostgreSQL binaries (e.g. pg_config, psql)')
-parser.add_argument('--user', nargs='?', type=str, 
-                   help="Postgres username for accessing edifice database (e.g. during --create or --data) [default: 'edifice']")
-parser.add_argument('--superuser', nargs='?', type=str, 
-                   help="Postgres superuser name for creating edifice database (e.g. during --create_template) [default: 'postgres']")
-parser.add_argument('--host', nargs='?', type=str, 
-                   help="Postgres host [default: 'localhost']")
-parser.add_argument('--database', nargs='?', type=str,
-                   help="Name for edifice database [default: 'edifice']")
-parser.add_argument('--delete_downloads', action='store_true',
-                   help="Keep files downloaded from the various data portals after they have been imported [default: True]")
-args = parser.parse_args()
+  parser = argparse.ArgumentParser(description='Setup the PostGIS Edifice database and populate it with open datasets.')
+  parser.add_argument('--create_template', action='store_true',
+                      help="Run only once to create a base postgis template ('base_postgis') as the postgres superuser")
+  parser.add_argument('--create', action='store_true',
+                      help='Drop existing edifice database and create from scratch based on the base_postgis database created with --create_template')
+  parser.add_argument('--data', action='store_true',
+                      help='Download and import City of Chicago data to edifice database (as listed in datasets.py)')
+  parser.add_argument('--bindir', nargs='?', type=str,
+                      help='Directory location of PostgreSQL binaries (e.g. pg_config, psql)')
+  parser.add_argument('--user', nargs='?', type=str, 
+                      help="Postgres username for accessing edifice database (e.g. during --create or --data) [default: 'edifice']")
+  parser.add_argument('--superuser', nargs='?', type=str, 
+                      help="Postgres superuser name for creating edifice database (e.g. during --create_template) [default: 'postgres']")
+  parser.add_argument('--host', nargs='?', type=str, 
+                      help="Postgres host [default: 'localhost']")
+  parser.add_argument('--database', nargs='?', type=str,
+                      help="Name for edifice database [default: 'edifice']")
+  parser.add_argument('--delete_downloads', action='store_true',
+                      help="Keep files downloaded from the various data portals after they have been imported [default: True]")
+  args = parser.parse_args()
 
-#print "args is", args
+  # Handle --bindir [directory w/ postgres binaries]
+  if args.bindir:
+    POSTGRES_BINDIRNAME = args.bindir
 
-# Handle --bindir [directory w/ postgres binaries]
-if args.bindir:
-  POSTGRES_BINDIRNAME = args.bindir
+    # Check if we can find pg_config in this directory. If this fails, we can't find it.
+    try:
+      (major_version, minor_version) = get_postgres_version(POSTGRES_BINDIRNAME)
+    except OSError as e:
+      print "Cannot find pg_config in specified directory: %s" % POSTGRES_BINDIRNAME
+      sys.exit(1)
+      
+    # We know we have the right directory, let's just modify this process' PATH to have this directory first.
+    # Not exactly kosher but more straightforward than pasting POSTGRES_BINDIRNAME everywhere we exec 'psql'
+    os.environ['PATH'] = POSTGRES_BINDIRNAME + ":" + os.environ['PATH']
 
-  # Check if we can find pg_config in this directory. If this fails, we can't find it.
-  try:
-    (major_version, minor_version) = get_postgres_version(POSTGRES_BINDIRNAME)
-  except OSError as e:
-    print "Cannot find pg_config in specified directory: %s" % POSTGRES_BINDIRNAME
-    sys.exit(1)
-  
-  # We know we have the right directory, let's just modify this process' PATH to have this directory first.
-  # Not exactly kosher but more straightforward than pasting POSTGRES_BINDIRNAME everywhere we exec 'psql'
-  os.environ['PATH'] = POSTGRES_BINDIRNAME + ":" + os.environ['PATH']
+  if args.user:
+    EDIFICE_USER = args.user
 
-if args.user:
-  EDIFICE_USER = args.user
+  if args.superuser:
+    POSTGRES_SUPERUSER = args.superuser
 
-if args.superuser:
-  POSTGRES_SUPERUSER = args.superuser
+  if args.database:
+    EDIFICE_DB = args.database
 
-if args.database:
-  EDIFICE_DB = args.database
+  if args.delete_downloads:
+    DELETE_DOWNLOADS = args.delete_downloads
 
-if args.delete_downloads:
-  DELETE_DOWNLOADS = args.delete_downloads
+  # Handle --create_template [reconstruction of base_postgis template using the postgres superuser account]
+  if args.create_template:
+    try:
+      (major_version, minor_version) = get_postgres_version()
+    except OSError as e:
+      print "Cannot find pg_config. Please include the location of your pg_config binary in the flag --bindir."
+      sys.exit(1)
 
-# Handle --create_template [reconstruction of base_postgis template using the postgres superuser account]
-if args.create_template:
-  try:
-    (major_version, minor_version) = get_postgres_version()
-  except OSError as e:
-    print "Cannot find pg_config. Please include the location of your pg_config binary in the flag --bindir."
-    sys.exit(1)
+    print 'Initializing postgres with a basic PostGIS template using the postgres superuser.'
+    # See if database base_postgis exists
+    db_names = get_postgres_database_list()
+    print "db_names is ", db_names
+    print "EDIFICE_DB is " ,EDIFICE_DB
+    if (EDIFICE_DB in db_names):
+      print("Deleting the MAIN edifice database in '%s'!" % EDIFICE_DB)
+      call_or_fail("dropdb",user=POSTGRES_SUPERUSER, interactive=True, argument=EDIFICE_DB)
 
-  print 'Initializing postgres with a basic PostGIS template using the postgres superuser.'
-  # See if database base_postgis exists
-  db_names = get_postgres_database_list()
-  print "db_names is ", db_names
-  print "EDIFICE_DB is " ,EDIFICE_DB
-  if (EDIFICE_DB in db_names):
-    print("Deleting the MAIN edifice database in '%s'!" % EDIFICE_DB)
-    call_or_fail("dropdb",user=POSTGRES_SUPERUSER, interactive=True, argument=EDIFICE_DB)
-
-  # We should drop the edifice user (we will be recreating it and its roles).
-  #if (EDIFICE_USER != 'postgres'):
-  #  # XXX, this could potentially be uncool if the client has a superuser not called 'postgres'?
-  #  call_or_fail("dropuser", user=POSTGRES_SUPERUSER, interactive=True, argument=EDIFICE_USER)
+    # We should drop the edifice user (we will be recreating it and its roles).
+    #if (EDIFICE_USER != 'postgres'):
+    #  # XXX: this could be potentially uncool if the client has a superuser not called 'postgres'?
+    #  call_or_fail("dropuser", user=POSTGRES_SUPERUSER, interactive=True, argument=EDIFICE_USER)
     
-  if('base_postgis' in db_names):
-    # Make base_postgis deleteable
-    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
-    call_or_fail("dropdb", user=POSTGRES_SUPERUSER, interactive=True, argument="base_postgis")
+    if('base_postgis' in db_names):
+      # Make base_postgis deleteable
+      call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='false' WHERE datname='base_postgis';")
+      call_or_fail("dropdb", user=POSTGRES_SUPERUSER, interactive=True, argument="base_postgis")
 
-  # This could be template1, except I was having problems with my
-  # template1 being in ASCII explictly on my 9.0 install
-  call_or_fail("createdb", user=POSTGRES_SUPERUSER, template="template0", encoding="UTF8", argument= "base_postgis")
+    # This could be template1, except I was having problems with my template1 being in ASCII explictly on a 9.0 install
+    call_or_fail("createdb", user=POSTGRES_SUPERUSER, template="template0", encoding="UTF8", argument= "base_postgis")
 
-  # Note: This doesn't seem necessary as the templates in 9.0 and 9.2 seem to have this included.
-  # call_or_fail("createlang plpgsql base_postgis")
+    # Note: This doesn't seem necessary, as the templates in 9.0 and 9.2 seem to have this included.
+    # call_or_fail("createlang plpgsql base_postgis")
 
-  if (minor_version == 0):
-    # Get the sharedir from pg_config and verify the existence of postgis.sql and spatial_ref_sys.sql
-    share_dirname = get_postgres_sharedir()
-    print "share_dirname is " , share_dirname
+    if (minor_version == 0):
+      # Get the sharedir from pg_config and verify the existence of postgis.sql and spatial_ref_sys.sql
+      share_dirname = get_postgres_sharedir()
+      print "share_dirname is " , share_dirname
 
-    postgis_fnames = []
-    postgis_basenames = ['postgis.sql', 'postgis_comments.sql', 'spatial_ref_sys.sql']
-    # Optional postgis scripts not currently included in base install:
-    # raster_comments.sql, rtpostgis.sql, topology.sql, topology_comments.sql
-    for postgis_basename in postgis_basenames:
-      fname = os.path.join(share_dirname, 'contrib/postgis-2.0/%s' % postgis_basename)
-      if (not os.path.isfile(fname)):
-        print "Can't find contrib/postgis-2.0/%s in %s: is PostGIS 2.0.x+ installed?" % (fname, share_dirname)
-        sys.exit(1)
-      else:
-        postgis_fnames.append(fname)
+      postgis_fnames = []
+      postgis_basenames = ['postgis.sql', 'postgis_comments.sql', 'spatial_ref_sys.sql']
+      # Optional postgis scripts not currently included in base install:
+      # raster_comments.sql, rtpostgis.sql, topology.sql, topology_comments.sql
+      for postgis_basename in postgis_basenames:
+        fname = os.path.join(share_dirname, 'contrib/postgis-2.0/%s' % postgis_basename)
+        if (not os.path.isfile(fname)):
+          print "Can't find contrib/postgis-2.0/%s in %s: is PostGIS 2.0.x+ installed?" % (fname, share_dirname)
+          sys.exit(1)
+        else:
+          postgis_fnames.append(fname)
 
-    for fname in postgis_fnames:
-      call_or_fail('psql', user=POSTGRES_SUPERUSER, database="base_postgis", fname=fname)
+      for fname in postgis_fnames:
+        call_or_fail('psql', user=POSTGRES_SUPERUSER, database="base_postgis", fname=fname)
 
-    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command ="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
+      call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command ="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
 
-  elif (minor_version >= 1):
-    # Instead of the above, just do 'CREATE EXTENSION postgis' if we are using 9.1 or later
-    #call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION postgis;")
-    call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;")
-    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
-                      
-  # Allow non-superusers to alter spatial tables
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON geometry_columns TO PUBLIC;")
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON geography_columns TO PUBLIC;")
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON spatial_ref_sys TO PUBLIC;")
+    elif (minor_version >= 1):
+      # Instead of the above, just do 'CREATE EXTENSION postgis' if we are using 9.1 or later
+      call_or_fail("psql", user=POSTGRES_SUPERUSER,database="base_postgis", sql_command= "CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;")
+      call_or_fail("psql", user=POSTGRES_SUPERUSER, database="postgres", sql_command="UPDATE pg_database SET datistemplate='true' WHERE datname='base_postgis';")
+                        
+    # Allow non-superusers to alter spatial tables
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON geometry_columns TO PUBLIC;")
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON geography_columns TO PUBLIC;")
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="GRANT ALL ON spatial_ref_sys TO PUBLIC;")
 
-  # Finally, give a user 'edifice' permission to alter the database with 'createdb' permission
-  # Note: This does not check to see if a 'edifice' user already exists.
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="CREATE USER %s;" % EDIFICE_USER)
-  call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="ALTER USER %s createdb;" % EDIFICE_USER)
+    # Finally, give a user 'edifice' permission to alter the database with 'createdb' permission
+    # Note: This does not check to see if a 'edifice' user already exists.
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="CREATE USER %s;" % EDIFICE_USER)
+    call_or_fail("psql", user=POSTGRES_SUPERUSER, database="base_postgis", sql_command="ALTER USER %s createdb;" % EDIFICE_USER)
 
-# Handle --create [reconstruction of edifice database using the edifice user account]
-if args.create :
-  print 'setting up edifice database from scratch'
+  # Handle --create [reconstruction of edifice database using the edifice user account]
+  if args.create :
+    print 'Setting up edifice database from scratch.'
 
-  call_or_fail("dropdb", user=EDIFICE_USER, interactive=True, argument=EDIFICE_DB)
+    call_or_fail("dropdb", user=EDIFICE_USER, interactive=True, argument=EDIFICE_DB)
+    call_or_fail("createdb", user=EDIFICE_USER, template="base_postgis", argument=EDIFICE_DB)
 
-  call_or_fail("createdb", user=EDIFICE_USER, template="base_postgis", argument=EDIFICE_DB)
-
-  # XXX: Is it not necessary to make edifice the owner of these tables inherited from base_postgis?
-  #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geometry_columns OWNER TO edifice;")
-  #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geography_columns OWNER TO edifice;")
-  #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE spatial_ref_sys OWNER TO edifice;")
+    # XXX: Is it not necessary to make edifice the owner of these tables inherited from base_postgis?
+    #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geometry_columns OWNER TO edifice;")
+    #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE geography_columns OWNER TO edifice;")
+    #call_or_fail("psql", user=POSTGRES_SUPERUSER, database=EDIFICE_DB, sql_command="ALTER TABLE spatial_ref_sys OWNER TO edifice;")
   
-  call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/pins_master.sql")
-  #call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
-  call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
+    call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/pins_master.sql")
+    # Not sure why we were creating these specific tables from edifice_initialization_script in advance.
+    # call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
+    call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
 
-  if os.path.exists("downloads/pins.dump"):
-    print "Note: pins.dump already exists. Not fetching it."
-  else:
-    print 'Fetching pins.dump...'
-    call_args_or_fail("wget -O downloads/pins.dump http://dl.dropbox.com/u/14915791/pins.dump".split())
-  print "Loading property pins..."
-  call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+    call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, sql_command="CREATE SCHEMA dataportal IF NOT EXISTS;")
 
-  if (DELETE_DOWNLOADS):
-    os.remove('downloads/pins.dump')
+
+    if os.path.exists("downloads/pins.dump"):
+      print "Note: pins.dump already exists. Not fetching it."
+    else:
+      print 'Fetching pins.dump...'
+      call_args_or_fail("wget -O downloads/pins.dump http://dl.dropbox.com/u/14915791/pins.dump".split())
+    print "Loading property pins..."
+    call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+
+    if (DELETE_DOWNLOADS):
+      os.remove('downloads/pins.dump')
   
+  if args.data:
+    # Connect to the db
+    print "Connecting to database '%s' with user '%s'" % (EDIFICE_DB, EDIFICE_USER)
+    try:
+      DB_CONN=psycopg2.connect(database=EDIFICE_DB, user=EDIFICE_USER)
+      DB_CONN.set_session(autocommit=True) # Crucial so that we don't have really long-running transaction sequences
+    except psycopg2.OperationalError as e:
+      print e
+      sys.exit(1)
+  
+    print "Importing datasets from open data portals. this will take a while..."
+    for d in datasets:
+      process_data(d)
 
-if args.data:
-  print "Importing datasets from open data portals. this will take a while..."
-  for d in datasets:
-    process_data(d)
-  print '======= Done! Happy Edificing! ======='
+    DB_CONN.close()
+    print '======= Done! Happy Edificing! ======='
 
+  # if no actionable args, print out help message!
+  if ((not args.create_template) and (not args.create) and (not args.data)):
+    parser.print_help()
 
-# if no actionable args, print out help message!
-if ((not args.create_template) and (not args.create) and (not args.data)):
-  parser.print_help()
+if __name__ == "__main__":
+    main()
