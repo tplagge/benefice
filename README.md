@@ -26,7 +26,7 @@ Drop and recreate from scratch an `edifice` database struture, using the 'edific
 python setup_edifice.py --create
 </pre>
 
-Download, unzip, and import City of Chicago data into the `edifice` database. [NOTE: WORK IN PROGRESS]
+Download (~165mb), unzip, and import City of Chicago data into the `edifice` database. [NOTE: WORK IN PROGRESS]
 <pre>
 python setup_edifice.py --data
 </pre>

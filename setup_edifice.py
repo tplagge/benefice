@@ -389,19 +389,28 @@ def main():
     # call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
     call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
 
-    call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, sql_command="CREATE SCHEMA dataportal IF NOT EXISTS;")
+    # not sure what this line is doing
+    # call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, sql_command="CREATE SCHEMA dataportal IF NOT EXISTS;")
 
-
-    if os.path.exists("downloads/pins.dump"):
-      print "Note: pins.dump already exists. Not fetching it."
+    if os.path.exists("downloads/cook_county.dump"):
+      print "Note: cook_county.dump already exists. Not fetching it."
     else:
-      print 'Fetching pins.dump...'
-      call_args_or_fail("wget -O downloads/pins.dump http://dl.dropbox.com/u/14915791/pins.dump".split())
-    print "Loading property pins..."
-    call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/pins.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+      print 'Fetching cook_county.dump...'
+      call_args_or_fail("wget -O downloads/cook_county.dump https://s3.amazonaws.com/edifice/cook_county.dump".split())
+    print "Loading property cook_county..."
+    call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/cook_county.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+
+    if os.path.exists("downloads/assessor.dump"):
+      print "Note: assessor.dump already exists. Not fetching it."
+    else:
+      print 'Fetching assessor.dump...'
+      call_args_or_fail("wget -O downloads/assessor.dump https://s3.amazonaws.com/edifice/assessor.dump".split())
+    print "Loading property assessor..."
+    call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/assessor.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
 
     if (DELETE_DOWNLOADS):
-      os.remove('downloads/pins.dump')
+      os.remove('downloads/cook_county.dump')
+      os.remove('downloads/assessor.dump')
   
   if args.data:
     # Connect to the db
