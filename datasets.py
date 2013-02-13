@@ -39,7 +39,7 @@ datasets = [
  ['business_owners','Chicago','csv','ezma-pppn',{}],
 
  # civic
- ['cemeteries','Chicago','kml','zu2x-8zyf',{}],
+ ['cemeteries','Chicago','shp','t64e-x7nt',{}],
  ['contracts','Chicago','csv','rsxa-ify5',{}],
  ['cook_co_facilities_in_chicago','Chicago','csv','wse8-j3xr',{}],
  ['elevation_benchmarks','Chicago','csv','zgvr-7yfd',{}],
