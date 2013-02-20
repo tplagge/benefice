@@ -426,12 +426,14 @@ def main():
     for d in datasets_core:
       process_data(d)
 
+    # disabling this until we get our core buildings datasets loaded
     # print "Importing secondary datasets from open data portals. this will take a while..."
     # for d in datasets_secondary:
     #   process_data(d)
 
     DB_CONN.close()
     print '======= Done! Happy Edificing! ======='
+    print "To get started, type 'psql edifice'"
 
   # if no actionable args, print out help message!
   if ((not args.create_template) and (not args.create) and (not args.data)):
