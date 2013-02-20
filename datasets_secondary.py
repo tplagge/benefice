@@ -1,12 +1,6 @@
 # format [name, domain, data_type, socrata_id, options]
 
-datasets = [
- # buildings
- ['Building Footprints','Chicago','shp','w2v3-isjw',{'encoding': 'LATIN1'}],
- ['Boundaries - Curb Lines','Chicago','shp','5gv8-ktcg',{'encoding': 'LATIN1'}],
- ['Building Permits','Chicago','csv','ydr8-5enu',{}],
- ['Building Violations','Chicago','csv','22u3-xenr',{}],
-  
+datasets_secondary = [
  # boundaries
  ['2010 Census Blocks','Chicago','shp','3jmu-7ijz',{'encoding': 'LATIN1'}],
  ['2010 Census Tracts','Chicago','shp','biqm-wjk3',{'encoding': 'LATIN1'}],
@@ -30,7 +24,6 @@ datasets = [
  ['wards 2001','Chicago','shp','bhcv-wqkf',{}],
  ['winterovernightparkingrestrictions','Chicago','shp','kpim-yiyf',{}],
  ['zip_codes','Chicago','shp','2ka6-iycf',{}],
- ['zoning_aug2012','Chicago','shp','p8va-airx',{}],
 
  # county
 
@@ -98,7 +91,10 @@ datasets = [
  ['metra_stations','Chicago','shp','nqm8-q2ym',{}],
  ['pedway_routes','Chicago','shp','savp-mfks',{}],
  ['riverwalk','Chicago','shp','7nh7-nkau',{}],
- ['streets','Chicago','shp','xy4z-b6aa',{}],
+ ['street_centerlines','Chicago','shp','xy4z-b6aa',{}],
+ ['street gazetteer','Chicago','shp','i6bp-fvbx',{}],
+ ['Boundaries - Curb Lines','Chicago','shp','5gv8-ktcg',{'encoding': 'LATIN1'}],
+
 
  # CTA
 

@@ -4,7 +4,8 @@ import os
 import subprocess
 from subprocess import call, check_call, Popen, CalledProcessError
 import glob
-from datasets import datasets
+from datasets_core import datasets_core
+from datasets_secondary import datasets_secondary
 import sys
 import re
 import string
@@ -389,28 +390,27 @@ def main():
     # call_or_fail("psql", user=EDIFICE_USER,database=EDIFICE_DB, fname="sql_init_scripts/assessed.sql")
     call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
 
-    # not sure what this line is doing
-    # call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, sql_command="CREATE SCHEMA dataportal IF NOT EXISTS;")
+    call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, sql_command="CREATE SCHEMA dataportal;")
 
-    if os.path.exists("downloads/cook_county.dump"):
-      print "Note: cook_county.dump already exists. Not fetching it."
-    else:
-      print 'Fetching cook_county.dump...'
-      call_args_or_fail("wget -O downloads/cook_county.dump https://s3.amazonaws.com/edifice/cook_county.dump".split())
-    print "Loading property cook_county..."
-    call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/cook_county.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+    # if os.path.exists("downloads/cook_county.dump"):
+    #   print "Note: cook_county.dump already exists. Not fetching it."
+    # else:
+    #   print 'Fetching cook_county.dump...'
+    #   call_args_or_fail("wget -O downloads/cook_county.dump https://s3.amazonaws.com/edifice/cook_county.dump".split())
+    # print "Loading property cook_county..."
+    # call_raw_or_fail("pg_restore -U %s --role=%s -h %s -O -d %s downloads/cook_county.dump" % (EDIFICE_USER, EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
 
-    if os.path.exists("downloads/assessor.dump"):
-      print "Note: assessor.dump already exists. Not fetching it."
-    else:
-      print 'Fetching assessor.dump...'
-      call_args_or_fail("wget -O downloads/assessor.dump https://s3.amazonaws.com/edifice/assessor.dump".split())
-    print "Loading property assessor..."
-    call_raw_or_fail("pg_restore -U %s  -h %s -O -c -d %s downloads/assessor.dump" % (EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
+    # if os.path.exists("downloads/assessor.dump"):
+    #   print "Note: assessor.dump already exists. Not fetching it."
+    # else:
+    #   print 'Fetching assessor.dump...'
+    #   call_args_or_fail("wget -O downloads/assessor.dump https://s3.amazonaws.com/edifice/assessor.dump".split())
+    # print "Loading property assessor..."
+    # call_raw_or_fail("pg_restore -U %s --role=%s -h %s -O -d %s downloads/assessor.dump" % (EDIFICE_USER, EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
 
-    if (DELETE_DOWNLOADS):
-      os.remove('downloads/cook_county.dump')
-      os.remove('downloads/assessor.dump')
+    # if (DELETE_DOWNLOADS):
+    #   os.remove('downloads/cook_county.dump')
+    #   os.remove('downloads/assessor.dump')
   
   if args.data:
     # Connect to the db
@@ -422,9 +422,13 @@ def main():
       print e
       sys.exit(1)
   
-    print "Importing datasets from open data portals. this will take a while..."
-    for d in datasets:
+    print "Importing core datasets from open data portals. this will take a while..."
+    for d in datasets_core:
       process_data(d)
+
+    # print "Importing secondary datasets from open data portals. this will take a while..."
+    # for d in datasets_secondary:
+    #   process_data(d)
 
     DB_CONN.close()
     print '======= Done! Happy Edificing! ======='
