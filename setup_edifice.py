@@ -131,19 +131,39 @@ def process_data(dataset):
   options =     dataset[4]
 
   url = ''
-  # format: https://data.cityofchicago.org/download/5gv8-ktcg/application/zip
-  if (domain == 'Chicago'):
-    if data_type == 'shp':
-      url = "http://data.cityofchicago.org/download/%s/application/zip" % (socrata_id,)
-      if 'platform' in options and options['platform'] == 'mondara':
-        url = "https://data.cityofchicago.org/api/geospatial/%s?method=export&format=Shapefile" % (socrata_id,)
-      
-      import_shp(name, url, options.setdefault('encoding',''))
-    elif data_type == 'json':
-      hostname = 'data.cityofchicago.org'
-      import_json(name, hostname, socrata_id, options.setdefault('encoding',''))
-    else:
-      print 'ERROR: unknown domain or data type', data_type, 'for', name
+
+  data_portal_url = 'data.cityofchicago.org'
+  if (domain == 'Cook County'):
+    data_portal_url = 'data.cookcountyil.gov'
+  elif (domain == 'Illinois'):
+    data_portal_url = 'data.illinois.gov'
+
+  if data_type == 'pgdump':
+    import_pgdump(name)
+  elif data_type == 'shp':
+    url = "http://%s/download/%s/application/zip" % (data_portal_url, socrata_id)
+    if 'platform' in options and options['platform'] == 'mondara':
+      url = "https://%s/api/geospatial/%s?method=export&format=Shapefile" % (data_portal_url, socrata_id)
+    
+    import_shp(name, url, options.setdefault('encoding',''))
+  elif data_type == 'json':
+    import_json(name, data_portal_url, socrata_id, options.setdefault('encoding',''))
+  else:
+    print 'ERROR: unknown domain or data type', data_type, 'for', name
+
+def import_pgdump (name):
+  download_name = "%s.dump" % os.path.join('downloads', name)
+
+  if os.path.exists(download_name):
+    print "Note: %s already exists. Not fetching it." % name
+  else:
+    print 'Fetching %s ...' % name
+    call_args_or_fail("wget -O %s https://s3.amazonaws.com/edifice/%s".split() % (download_name, name))
+  print "Loading..."
+  call_raw_or_fail("pg_restore -U %s --role=%s -h %s -O -d %s %s" % (EDIFICE_USER, EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB, download_name))
+
+  if (DELETE_DOWNLOADS):
+    os.remove(download_name)
 
 def import_json (name, hostname, socrata_id, options):
   # Get the header information
@@ -391,26 +411,6 @@ def main():
     call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, fname="sql_init_scripts/edifice_initialization_script.sql")
 
     call_or_fail("psql", user=EDIFICE_USER, database=EDIFICE_DB, sql_command="CREATE SCHEMA dataportal;")
-
-    # if os.path.exists("downloads/cook_county.dump"):
-    #   print "Note: cook_county.dump already exists. Not fetching it."
-    # else:
-    #   print 'Fetching cook_county.dump...'
-    #   call_args_or_fail("wget -O downloads/cook_county.dump https://s3.amazonaws.com/edifice/cook_county.dump".split())
-    # print "Loading property cook_county..."
-    # call_raw_or_fail("pg_restore -U %s --role=%s -h %s -O -d %s downloads/cook_county.dump" % (EDIFICE_USER, EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
-
-    # if os.path.exists("downloads/assessor.dump"):
-    #   print "Note: assessor.dump already exists. Not fetching it."
-    # else:
-    #   print 'Fetching assessor.dump...'
-    #   call_args_or_fail("wget -O downloads/assessor.dump https://s3.amazonaws.com/edifice/assessor.dump".split())
-    # print "Loading property assessor..."
-    # call_raw_or_fail("pg_restore -U %s --role=%s -h %s -O -d %s downloads/assessor.dump" % (EDIFICE_USER, EDIFICE_USER, POSTGRES_HOST, EDIFICE_DB))
-
-    # if (DELETE_DOWNLOADS):
-    #   os.remove('downloads/cook_county.dump')
-    #   os.remove('downloads/assessor.dump')
   
   if args.data:
     # Connect to the db
