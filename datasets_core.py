@@ -5,6 +5,7 @@ datasets_core = [
  # see https://github.com/maschinenmensch/edifice/issues/21
  # ['cook_county','','pgdump','',{}],
  # ['assessor','','pgdump','',{}],
+ # ['landuse','','pgdump','',{}],
 
  # gazeeter for address matching
  # see: https://github.com/maschinenmensch/edifice/issues/23
