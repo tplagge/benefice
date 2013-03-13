@@ -1,6 +1,6 @@
-# edifice
+# benefice
 
-A database of the built environment in Chicago using open data
+A database of the built environment in Chicago using open data, forked from Edifice
 
 ## Requirements
 
