@@ -1,5 +1,5 @@
 # Functions for importing shapefiles and CSV files from Socrata (as imported into tables in the schema 'dataportal')
-# into the custom tables in the Edifice database. For example, the 'building_footprints' data (geometry and table)
+# into the custom tables in the Benefice database. For example, the 'building_footprints' data (geometry and table)
 # is used to populate buildings.buildings, buildings.buildings_address, buildings.sqft, buildings.year_built,
 # buildings.buildings_bldg_name and possibly more.
 

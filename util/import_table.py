@@ -2,11 +2,10 @@
 
 import csv, re, sys
 
-infile=sys.argv[1]
-
-# Auto-detect column types in a csv file
-columns=[]
-with open(infile,'r') as f:
+def get_csv_column_types(infile):
+ # Auto-detect column types in a csv file
+ columns=[]
+ with open(infile,'r') as f:
   csvfile=csv.reader(f)
   coordmatch=re.compile(r'(\"\')?\(\d+\.\d*, +(\-)?\d+\.\d*\)(\"\')?$')
   intmatch=re.compile(r'(\-)?\d+$')
@@ -40,4 +39,8 @@ with open(infile,'r') as f:
       # OK, fall back to string
       if columns[icol]['type'] is None:
         columns[icol]['type']='string'
-    
+ return columns
+
+
+if __name__ == "__main__":
+  get_csv_column_types(sys.argv[1])
