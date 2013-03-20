@@ -19,6 +19,7 @@ def get_create_table(dbname, name, columns):
     fieldname = column[u'fieldName'].strip()
     fieldname = fieldname.lower()
     fieldname = string.replace(fieldname,' ','_')
+    fieldname = string.replace(fieldname,'#','_no')
 
     #if (not first):
     #  db_command += ', '
