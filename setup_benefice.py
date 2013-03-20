@@ -17,7 +17,7 @@ from util.import_table import get_csv_column_types, get_create_table
 
 BENEFICE_USER = 'benefice'
 BENEFICE_DB = 'benefice'
-POSTGRES_BINDIRNAME = None
+POSTGRES_BINDIRNAME = '/opt/local/lib/postgresql91/bin'
 POSTGRES_SUPERUSER = 'postgres'
 POSTGRES_HOST = 'localhost'
 DELETE_DOWNLOADS = False
@@ -194,7 +194,12 @@ def import_csv(name, hostname, socrata_id, options):
 
   drop_table_sql = "DROP TABLE %s.%s" % (dbname, name)
   cur=DB_CONN.cursor()
-  cur.execute(drop_table_sql)
+  try:    
+    cur.execute(drop_table_sql)
+  except psycopg2.ProgrammingError: 
+    DB_CONN.rollback()
+  else:   
+    DB_CONN.commit()
 
   print "create table command: ", create_table_sql
   cur=DB_CONN.cursor()
