@@ -412,7 +412,7 @@ def main():
       for postgis_basename in postgis_basenames:
         fname = os.path.join(share_dirname, 'contrib/postgis-2.0/%s' % postgis_basename)
         if (not os.path.isfile(fname)):
-          print "Can't find contrib/postgis-2.0/%s in %s: is PostGIS 2.0.x+ installed?" % (fname, share_dirname)
+          print "Can't find contrib/postgis-2.0/%s in %s: is PostGIS 2.0.x+ installed?" % (postgis_basename, share_dirname)
           sys.exit(1)
         else:
           postgis_fnames.append(fname)
