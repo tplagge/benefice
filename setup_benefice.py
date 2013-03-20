@@ -196,6 +196,13 @@ def import_csv(name, hostname, socrata_id, options):
   cur=DB_CONN.cursor()
   cur.execute(create_table_sql)
 
+  # hack to use 'psql -c' to insert the rows
+  #sql_cmd = "\copy street_gazetteer FROM 'downloads/street_gazetteer.csv' WITH CSV HEADER"
+  sql_cmd = "\copy %s FROM '%s' WITH CSV HEADER" % (name, name_csv)
+  call_or_fail("psql", user=BENEFICE_USER, database=BENEFICE_DB, sql_command=sql_cmd)
+
+
+
 
 def import_json (name, hostname, socrata_id, options):
   # Get the header information
