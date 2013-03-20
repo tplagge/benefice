@@ -193,6 +193,7 @@ def import_csv(name, hostname, socrata_id, options):
   create_table_sql = get_create_table(dbname, name, csv_col_types)
 
   drop_table_sql = "DROP TABLE %s.%s" % (dbname, name)
+  print drop_table_sql
   cur=DB_CONN.cursor()
   cur.execute(drop_table_sql)
 
@@ -203,6 +204,7 @@ def import_csv(name, hostname, socrata_id, options):
   # hack to use 'psql -c' to insert the rows
   #sql_cmd = "\copy street_gazetteer FROM 'downloads/street_gazetteer.csv' WITH CSV HEADER"
   sql_cmd = "\copy %s.%s FROM '%s' WITH CSV HEADER" % (dbname, name, name_csv)
+  print "calling '%s'" % sql_cmd
   call_or_fail("psql", user=BENEFICE_USER, database=BENEFICE_DB, sql_command=sql_cmd)
 
 
