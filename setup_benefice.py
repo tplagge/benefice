@@ -13,7 +13,7 @@ import zipfile
 import csv
 import httplib, json, psycopg2
 import data_portal
-from util.import_table import get_csv_column_types
+from util.import_table import get_csv_column_types, get_create_table
 
 BENEFICE_USER = 'benefice'
 BENEFICE_DB = 'benefice'
@@ -169,12 +169,14 @@ def import_pgdump (name):
     os.remove(download_name)
 
 def import_csv(name, hostname, socrata_id, options):
+  dbname = 'dataportal' # import csvs directly to the intermediary 'dataportal' table
+  
   #https://data.cityofchicago.org/api/ydr8-5enu.json
   #columntypes_json_url = "http://%s/api/%s.json" %(hostname, socrata_id)
   #create_csvtable_via_json(name, columntypes_json_url)
   #import_json(name, hostname, socrata_id, options)
-    
   #https://data.cityofchicago.org/api/views/ydr8-5enu/rows.csv?accessType=DOWNLOAD
+
   url = "http://%s/api/views/%s/rows.csv" % (hostname, socrata_id)
 
   name_csv = "%s.csv" % os.path.join('downloads', name)
@@ -183,16 +185,17 @@ def import_csv(name, hostname, socrata_id, options):
     cmd_split.append(name_csv)
     cmd_split.append(url)
     call_args_or_fail(cmd_split)
-
-    cols = get_csv_column_types(name_csv)
-
-    print "TODO: csv import using column types"
-    return    # XXX
   else :
     print '%s exists, skipping download' % name_csv
-    return #XXX
 
-  print get_csv_column_types(name_csv)
+  print "TODO: csv import using column types"
+  csv_col_types =  get_csv_column_types(name_csv)
+  create_table_sql = get_create_table(dbname, name, csv_col_types)
+
+  print "create table command: ", create_table_sql
+  cur=DB_CONN.cursor()
+  cur.execute(create_table_sql)
+
 
 def import_json (name, hostname, socrata_id, options):
   # Get the header information
@@ -473,7 +476,7 @@ def main():
     #   process_data(d)
 
     DB_CONN.close()
-    print '======= Done! Happy Edificing! ======='
+    print '======= Done! Happy Beneficing! ======='
     print "To get started, type 'psql benefice'"
 
   # if no actionable args, print out help message!
