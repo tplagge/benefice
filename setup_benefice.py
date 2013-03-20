@@ -192,7 +192,7 @@ def import_csv(name, hostname, socrata_id, options):
   csv_col_types =  get_csv_column_types(name_csv)
   create_table_sql = get_create_table(dbname, name, csv_col_types)
 
-  drop_table_sql = "DROP TABLE %s.%s" % dbname, name
+  drop_table_sql = "DROP TABLE %s.%s" % (dbname, name)
   cur=DB_CONN.cursor()
   cur.execute(drop_table_sql)
 
