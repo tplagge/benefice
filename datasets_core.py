@@ -13,8 +13,8 @@ datasets_core = [
  ['building_permits','Chicago','csv','ydr8-5enu',{}],
 
  # core buildings datasets
- #['Building Footprints','Chicago','shp','w2v3-isjw',{'encoding': 'LATIN1'}],
- #['Building Permits','Chicago','csv','ydr8-5enu',{}],
- #['Building Violations','Chicago','csv','22u3-xenr',{}],
- #['zoning_aug2012','Chicago','shp','p8va-airx',{}]
+ ['building_footprints','Chicago','shp','w2v3-isjw',{'encoding': 'LATIN1'}],
+ ['building_permits','Chicago','csv','ydr8-5enu',{}],
+ ['building_violations','Chicago','csv','22u3-xenr',{}],
+ ['zoning_aug2012','Chicago','shp','p8va-airx',{}]
 ]
