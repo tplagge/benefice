@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import csv, re, sys, string
+import psycopg2
 
 # columns returned from get_csv_column_types, below
 def get_create_table(dbname, name, columns):
@@ -57,10 +58,13 @@ def get_csv_column_types(infile):
     for icol,col in enumerate(row):
       if col=='': continue
       # Check for lat/long
-      if columns[icol]['dataType'] in [None,'latlong']:
+      if columns[icol]['dataType'] in [None,'geography']:
         try:
           assert coordmatch.match(col)!=None
-          columns[icol]['dataType']='latlong'
+          # For now, treat lat/long pairs as varchars.
+          # Eventually, they should be geographies.
+          #columns[icol]['dataType']='geography'
+          columns[icol]['dataType']='varchar'
         except:
           columns[icol]['dataType']=None
       # Check for int
@@ -81,8 +85,11 @@ def get_csv_column_types(infile):
       if columns[icol]['dataType'] is None:
         #columns[icol]['dataType']='string'
         columns[icol]['dataType']='varchar'
+  for icol,col in enumerate(columns):
+    if col['dataType'] is None: col['dataType']='varchar'
  return columns
 
 
 if __name__ == "__main__":
-  get_csv_column_types(sys.argv[1])
+  columns=get_csv_column_types(sys.argv[1])
+  get_create_table('FOO','BAR',columns)

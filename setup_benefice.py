@@ -17,7 +17,7 @@ from util.import_table import get_csv_column_types, get_create_table
 
 BENEFICE_USER = 'benefice'
 BENEFICE_DB = 'benefice'
-POSTGRES_BINDIRNAME = '/opt/local/lib/postgresql91/bin'
+POSTGRES_BINDIRNAME = None # '/opt/local/lib/postgresql91/bin/'
 POSTGRES_SUPERUSER = 'postgres'
 POSTGRES_HOST = 'localhost'
 DELETE_DOWNLOADS = False
