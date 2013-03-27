@@ -14,13 +14,20 @@ import csv
 import httplib, json, psycopg2
 import data_portal
 from util.import_table import get_csv_column_types, get_create_table
+from util.local_conf import read_local_conf
 
-BENEFICE_USER = 'benefice'
-BENEFICE_DB = 'benefice'
-POSTGRES_BINDIRNAME = None # '/opt/local/lib/postgresql91/bin/'
-POSTGRES_SUPERUSER = 'postgres'
-POSTGRES_HOST = 'localhost'
-DELETE_DOWNLOADS = False
+config = read_local_conf('local_conf')
+
+try:
+  BENEFICE_USER       = config['BENEFICE_USER']
+  BENEFICE_DB         = config['BENEFICE_DB'] 
+  POSTGRES_BINDIRNAME = config['POSTGRES_BINDIRNAME'] 
+  POSTGRES_SUPERUSER  = config['POSTGRES_SUPERUSER'] 
+  POSTGRES_HOST       = config['POSTGRES_HOST'] 
+  DELETE_DOWNLOADS    = config['DELETE_DOWNLOADS']
+except KeyError:
+  print('Invalid config database')
+  sys.exit(1)
 
 # Start out with no psycopg2 connection, make it during data import ('--data')
 DB_CONN = None
