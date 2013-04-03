@@ -21,6 +21,11 @@ easy_install psycopg2
 easy_install PyYAML
 ```
 
+Copy over the example setup.cfg:
+```bash
+cp setup.cfg.example setup.cfg
+```
+
 ## Using setup_benefice.py
 
 setup_benefice.py is used to recreate the benefice database on a system
