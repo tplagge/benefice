@@ -41,7 +41,8 @@ def do_buildingfootprints(db_conn):
     #sql = "INSERT INTO buildings.stories (bldg_gid, stories) SELECT gid, no_stories FROM dataportal.building_footprints
 
 def do_import(name, db_conn):
-    if (name == 'building_footprints'):
-        do_buildingfootprints(db_conn)
-    else:
-        print "data portal import for '%s' not implemented yet. Sorry!" % name
+    #if (name == 'building_footprints'):
+    #    do_buildingfootprints(db_conn)
+    #else:
+    #    print "data portal import for '%s' not implemented yet. Sorry!" % name
+    pass
