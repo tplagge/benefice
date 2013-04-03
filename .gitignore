@@ -1,4 +1,6 @@
 import/*
+setup.cfg
+
 *.dump
 *.csv
 *.zip
