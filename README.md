@@ -9,6 +9,7 @@ A database of the built environment in Chicago using open data, forked from Edif
 * Python (2.7.x or later)
 * wget
 * psycopg2
+* PyYAML
 
 ## Using setup_benefice.py
 

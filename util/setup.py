@@ -1,6 +1,6 @@
 import yaml
 
-def read_local_conf(filename):
+def read_setup(filename):
   default_conf = {\
     'BENEFICE_USER':           'benefice',
     'BENEFICE_DB':             'benefice',

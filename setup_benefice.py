@@ -14,9 +14,9 @@ import csv
 import httplib, json, psycopg2
 import data_portal
 from util.import_table import get_csv_column_types, get_create_table
-from util.local_conf import read_local_conf
+from util.setup import read_setup
 
-config = read_local_conf('local_conf')
+config = read_setup('setup.cfg')
 
 try:
   BENEFICE_USER       = config['BENEFICE_USER']

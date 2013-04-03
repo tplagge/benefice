@@ -1,0 +1,6 @@
+BENEFICE_USER:  benefice
+BENEFICE_DB:  benefice
+POSTGRES_BINDIRNAME: !!null
+POSTGRES_SUPERUSER: postgres
+POSTGRES_HOST:  localhost
+DELETE_DOWNLOADS: false
