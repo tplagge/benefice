@@ -324,7 +324,7 @@ def import_shp (name, url, encoding):
       stdout = p2.communicate()[0]
 
   # Now do the specialized import for the given dataset
-  data_portal.do_import(name, DB_CONN)
+  # data_portal.do_import(name, DB_CONN)
 
   # Great. Now delete all the files in zip_file_contents
   if DELETE_DOWNLOADS:
