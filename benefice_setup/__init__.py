@@ -1,11 +1,15 @@
 import yaml
 
+# configurable globals
 BENEFICE_USER       = 'benefice'
 BENEFICE_DB         = 'benefice'
 POSTGRES_BINDIRNAME = None
 POSTGRES_SUPERUSER  = 'postgres'
 POSTGRES_HOST       = 'localhost'
 DELETE_DOWNLOADS    = False
+
+# internal globals
+DB_CONN = None
 
 setup_filename      = 'setup.cfg'
 
