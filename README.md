@@ -2,14 +2,24 @@
 
 A database of the built environment in Chicago using open data, forked from Edifice
 
-## Requirements
+## Installation and dependencies
 
 * PostgreSQL (9.0.x or later; 9.1.x+ preferred)
 * PostGIS (2.0.x or later)
 * Python (2.7.x or later)
-* wget
-* psycopg2
-* PyYAML
+
+Using pip:
+```bash
+pip install -r requirements.txt
+```
+
+Using easy_install:
+
+```bash
+easy_install wget
+easy_install psycopg2
+easy_install PyYAML
+```
 
 ## Using setup_benefice.py
 
