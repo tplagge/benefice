@@ -7,6 +7,7 @@ import subprocess
 import zipfile
 import util.import_table as import_table
 import benefice_setup
+import re
 
 # third party libraries
 import psycopg2

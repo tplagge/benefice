@@ -1,4 +1,5 @@
 import yaml
+import os
 
 # configurable globals
 BENEFICE_USER       = 'benefice'
