@@ -16,9 +16,10 @@ CREATE TABLE benefice.building_footprints (
   num_units   INTEGER,
   start_addr  INTEGER,
   end_addr    INTEGER,
-  direction   VARCHAR(1),
+  street_dir  VARCHAR(1),
   street_name VARCHAR(35),
-  street_type VARCHAR(5)
+  street_type VARCHAR(5),
+  unit_name   VARCHAR(8)
 );
   
 ALTER SEQUENCE benefice.bldg_gid_seq 
@@ -36,14 +37,12 @@ SELECT AddGeometryColumn('benefice','building_footprints','centroid',3435,'POINT
 CREATE TABLE benefice.building_addresses (
   bldg_gid    INTEGER DEFAULT NULL,
   addr_number INTEGER,
-  end_addr    INTEGER DEFAULT NULL,
-  direction   VARCHAR(1),
+  street_dir  VARCHAR(1),
   street_name VARCHAR(35),
-  street_type VARCHAR(5)
+  street_type VARCHAR(5),
+  unit_name   VARCHAR(8)
 );
 
-ALTER TABLE ONLY benefice.building_addresses
-  ADD CONSTRAINT building_addresses_pkey PRIMARY KEY (bldg_gid);
 ALTER TABLE ONLY benefice.building_addresses
   ADD CONSTRAINT building_addresses_bldg_gid_fkey FOREIGN KEY (bldg_gid)
   REFERENCES benefice.building_footprints(bldg_gid);
