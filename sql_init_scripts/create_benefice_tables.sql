@@ -1,10 +1,14 @@
+DROP SCHEMA benefice CASCADE;
+
 CREATE SCHEMA benefice;
 
-SET search_path to dataportal,benefice,public;
+SET search_path TO benefice,public;
+
+/* BUILDINGS AND ADDRESSES ***************************************************/
 
 CREATE SEQUENCE benefice.bldg_gid_seq;
 
-CREATE TABLE benefice.building_footprint (
+CREATE TABLE benefice.building_footprints (
   bldg_gid    INTEGER NOT NULL DEFAULT nextval('bldg_gid_seq'),
   num_stories INTEGER,
   sqft        FLOAT,
@@ -17,14 +21,19 @@ CREATE TABLE benefice.building_footprint (
   street_type VARCHAR(5)
 );
   
-ALTER SEQUENCE benefice.bldg_gid_seq OWNED BY benefice.building_footprint.bldg_gid;
+ALTER SEQUENCE benefice.bldg_gid_seq 
+  OWNED BY benefice.building_footprints.bldg_gid;
+ALTER TABLE ONLY benefice.building_footprints
+  ADD CONSTRAINT building_footprints_pkey PRIMARY KEY (bldg_gid);
+ALTER TABLE ONLY benefice.building_footprints
+  ADD CONSTRAINT building_footprints_unique UNIQUE (bldg_gid);
   
-SELECT AddGeometryColumn('benefice','building_footprint','the_geom',3435,'MULTIPOLYGON',2);
-SELECT AddGeometryColumn('benefice','building_footprint','centroid',3435,'POINT',2);
+SELECT AddGeometryColumn('benefice','building_footprints','the_geom',3435,'MULTIPOLYGON',2);
+SELECT AddGeometryColumn('benefice','building_footprints','centroid',3435,'POINT',2);
 
-/* zero or more addresses correspond to each row in building_footprint */
-/* addr_number's are inferred from the address range in the data portal building footprints */
-CREATE TABLE benefice.building_address (
+/* zero or more addresses correspond to each row in building_footprints */
+/* addr_numbers are inferred from the address range in the data portal building footprints */
+CREATE TABLE benefice.building_addresses (
   bldg_gid    INTEGER DEFAULT NULL,
   addr_number INTEGER,
   end_addr    INTEGER DEFAULT NULL,
@@ -33,8 +42,17 @@ CREATE TABLE benefice.building_address (
   street_type VARCHAR(5)
 );
 
-/* many-to-one relationship with building_footprint */
+ALTER TABLE ONLY benefice.building_addresses
+  ADD CONSTRAINT building_addresses_pkey PRIMARY KEY (bldg_gid);
+ALTER TABLE ONLY benefice.building_addresses
+  ADD CONSTRAINT building_addresses_bldg_gid_fkey FOREIGN KEY (bldg_gid)
+  REFERENCES benefice.building_footprints(bldg_gid);
+
+/* PERMITS AND VIOLATIONS ****************************************************/
+/* many-to-one relationship with building_footprints */
+CREATE SEQUENCE benefice.construction_permits_id_seq;
 CREATE TABLE benefice.construction_permits (
+  id          INTEGER NOT NULL DEFAULT nextval('construction_permits_id_seq'),
   bldg_gid    INTEGER DEFAULT NULL,
   issue_date  DATE,
   permit_num  INTEGER,
@@ -42,8 +60,21 @@ CREATE TABLE benefice.construction_permits (
   work_desc   VARCHAR
 );
 
-/* many-to-one relationship with building_footprint */
+ALTER SEQUENCE benefice.construction_permits_id_seq 
+  OWNED BY benefice.construction_permits.id;
+ALTER TABLE ONLY benefice.building_footprints
+ALTER TABLE ONLY benefice.construction_permits
+  ADD CONSTRAINT construction_permits_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY benefice.construction_permits
+  ADD CONSTRAINT construction_permits_unique UNIQUE (id);
+ALTER TABLE ONLY benefice.construction_permits
+  ADD CONSTRAINT construction_permits_bldg_gid_fkey FOREIGN KEY (bldg_gid)
+  REFERENCES benefice.building_footprints(bldg_gid);
+
+/* many-to-one relationship with building_footprints */
+CREATE SEQUENCE benefice.building_violations_id_seq;
 CREATE TABLE benefice.building_violations (
+  id                  INTEGER NOT NULL DEFAULT nextval('building_violations_id_seq'),
   bldg_gid            INTEGER DEFAULT NULL,
   violation_date      DATE,
   violation_text      VARCHAR,
@@ -51,14 +82,36 @@ CREATE TABLE benefice.building_violations (
   inspection_result   VARCHAR
 );
 
-/* many-to-one relationship with building_footprint */
+ALTER SEQUENCE benefice.building_violations_id_seq 
+  OWNED BY benefice.building_violations.id;
+ALTER TABLE ONLY benefice.building_violations
+  ADD CONSTRAINT building_violations_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY benefice.building_violations
+  ADD CONSTRAINT building_violations_unique UNIQUE (id);
+ALTER TABLE ONLY benefice.building_violations
+  ADD CONSTRAINT building_violations_bldg_gid_fkey FOREIGN KEY (bldg_gid)
+  REFERENCES benefice.building_footprints(bldg_gid);
+
+/* many-to-one relationship with building_footprints */
+CREATE SEQUENCE benefice.demolition_permits_id_seq;
 CREATE TABLE benefice.demolition_permits (
+  id                     INTEGER NOT NULL DEFAULT nextval('demolition_permits_id_seq'),
   bldg_gid               INTEGER DEFAULT NULL,
   demolition_permit_date DATE
 );      
+ALTER SEQUENCE benefice.demolition_permits_id_seq 
+  OWNED BY benefice.demolition_permits.id;
+ALTER TABLE ONLY benefice.demolition_permits
+  ADD CONSTRAINT demolition_permits_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY benefice.demolition_permits
+  ADD CONSTRAINT demolition_permits_unique UNIQUE (id);
+ALTER TABLE ONLY benefice.demolition_permits
+  ADD CONSTRAINT demolition_permits_bldg_gid_fkey FOREIGN KEY (bldg_gid)
+  REFERENCES benefice.building_footprints(bldg_gid);
 
-
-/* one-to-many relationship with building_footprint */
+/* CENSUS ********************************************************************/
+/* Census block groups (bg) */
+/* one-to-many relationship with building_footprints */
 CREATE TABLE benefice.census_bg_2010 (
   state_id   INTEGER NOT NULL,
   county_id  INTEGER NOT NULL,
@@ -79,8 +132,8 @@ CREATE TABLE benefice.census_bg_2000 (
 SELECT AddGeometryColumn('benefice','census_bg_2000','the_geom',3435,'MULTIPOLYGON',2);
 SELECT AddGeometryColumn('benefice','census_bg_2000','centroid',3435,'POINT',2);
 
-
-/* one-to-many relationship with building_footprint */
+/* ZONING ********************************************************************/
+/* one-to-many relationship with building_footprints */
 CREATE TABLE benefice.zoning_poly (
   zone_id    INTEGER NOT NULL,
   zone_type  VARCHAR(20)
@@ -93,3 +146,5 @@ CREATE TABLE benefice.zone_type (
   zone_type   VARCHAR(20),
   description VARCHAR
 );
+
+

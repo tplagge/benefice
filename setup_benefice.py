@@ -3,6 +3,7 @@
 # system libraries
 import argparse
 import sys
+import os
 import re
 import string
 import csv
@@ -28,7 +29,10 @@ def main():
   parser.add_argument('--create', action='store_true',
                       help='Drop existing benefice database and create from scratch based on the base_postgis database created with --create_template')
   parser.add_argument('--data', action='store_true',
-                      help='Download and import City of Chicago data to benefice database (as listed in datasets.py)')
+                      help='Download and import data from the City, etc. (as listed in datasets.py)')
+  parser.add_argument('--populate', action='store_true',
+                      help='Take raw data tables and populate benefice tables')
+
   parser.add_argument('--bindir', nargs='?', type=str,
                       help='Directory location of PostgreSQL binaries (e.g. pg_config, psql)')
   parser.add_argument('--user', nargs='?', type=str, 
@@ -81,8 +85,11 @@ def main():
   if args.data:
     import_actions.data()
 
+  if args.populate:
+    import_actions.populate()
+
   # if no actionable args, print out help message!
-  if ((not args.create_template) and (not args.create) and (not args.data)):
+  if ((not args.create_template) and (not args.create) and (not args.data) and (not args.populate)):
     parser.print_help()
 
 if __name__ == "__main__":
