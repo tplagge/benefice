@@ -277,6 +277,9 @@ def import_shp (name, url, encoding):
     print "not unzipping, files already exist"
     return
     
+  for fname in glob.glob('import/*'):
+    print "Deleting:", fname
+    os.remove(fname)
   print 'extracting %s' % name_zip
   zip_file_contents = zip_file.namelist()
   for f in zip_file_contents:
@@ -302,10 +305,9 @@ def import_shp (name, url, encoding):
   # data_portal.do_import(name, DB_CONN)
 
   # Great. Now delete all the files in zip_file_contents
+  for fname in glob.glob('import/*'):
+    print "Deleting:", fname
+    os.remove(fname)
   if benefice_setup.DELETE_DOWNLOADS:
-    for fname in glob.glob('import/*'):
-      print "Deleting:", fname
-      os.remove(fname)
-
     print "deleting %s" % name_zip
     os.remove(name_zip)
