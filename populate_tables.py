@@ -101,6 +101,47 @@ def populate_addresses():
   benefice_setup.DB_CONN.commit()
   return True
 
+def get_gid_from_addr(cur, street_number, street_direction, street_name, suffix):
+  # This should be much, much smarter.
+  cur.execute('SELECT bldg_gid FROM benefice.building_addresses WHERE '+\
+                'addr_number =    %s AND '+\
+                'street_dir  =    %s AND '+\
+                'street_name LIKE %s AND '+\
+                'street_type LIKE %s',\
+                (street_number,street_direction,street_name,suffix))
+  res=cur.fetchall()
+  if len(res) == 0: return None
+  if len(res) == 1: return res[0][0]
+  if len(res) >  1:
+    print('Multiple matches: ')
+    for i in res: print(i)
+    return(res[0])
+
+def populate_construction_permits():
+  cur        = benefice_setup.DB_CONN.cursor()
+  cur_insert = benefice_setup.DB_CONN.cursor()  
+  select_sql = 'SELECT street_number, street_direction, street_name, suffix, '+\
+    'issue_date, permit_no, permit_type, work_description '+\
+    'FROM dataportal.building_permits'
+  try:
+    cur.execute(select_sql)
+  except psycopg2.OperationalError as e:
+    print(e)
+    return False
+  insert_sql_nogid = 'INSERT INTO benefice.construction_permits '+\
+    '(issue_date, permit_num, permit_type, work_desc) VALUES ('+\
+    '%s, %s, %s, %s)'
+  insert_sql_gid   = 'INSERT INTO benefice.construction_permits '+\
+    '(bldg_gid, issue_date, permit_num, permit_type, work_desc) VALUES ('+\
+    '%s, %s, %s, %s, %s)'
+  for row in cur:
+    bldg_gid=get_gid_from_addr(cur_insert, row[0],row[1],row[2],row[3])
+    if bldg_gid is not None:
+      cur_insert.execute(insert_sql_gid,(bldg_gid,row[4],row[5],row[6],row[7]))
+    else:
+      cur_insert.execute(insert_sql_nogid,(row[4],row[5],row[6],row[7]))
+  return True
+
 if __name__ == '__main__':
   print "Connecting to database '%s' with user '%s'" % \
     (benefice_setup.BENEFICE_DB, benefice_setup.BENEFICE_USER)
@@ -113,3 +154,4 @@ if __name__ == '__main__':
     sys.exit(1)
   populate_footprints()
   populate_addresses()
+  populate_construction_permits()

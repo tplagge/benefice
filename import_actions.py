@@ -8,6 +8,7 @@ import benefice_setup
 import util.import_helpers as import_helpers
 from datasets_core import datasets_core
 from datasets_secondary import datasets_secondary
+import sys
 
 # Handle --create_template [reconstruction of base_postgis template using the postgres superuser account]
 def create_template():

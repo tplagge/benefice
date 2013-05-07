@@ -54,7 +54,7 @@ CREATE TABLE benefice.construction_permits (
   id          INTEGER NOT NULL DEFAULT nextval('construction_permits_id_seq'),
   bldg_gid    INTEGER DEFAULT NULL,
   issue_date  DATE,
-  permit_num  INTEGER,
+  permit_num  VARCHAR,
   permit_type VARCHAR,
   work_desc   VARCHAR
 );
