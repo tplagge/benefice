@@ -10,6 +10,7 @@ datasets_core = [
  # gazeeter for address matching
  # see: https://github.com/maschinenmensch/edifice/issues/23
  ['street_gazetteer','Chicago','csv','i6bp-fvbx',{}],
+ ['street_centerlines','Chicago','shp','xy4z-b6aa',{}],
 
  # core buildings datasets
  ['building_footprints','Chicago','shp','w2v3-isjw',{'encoding': 'LATIN1'}],
