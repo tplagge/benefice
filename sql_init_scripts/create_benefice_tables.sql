@@ -2,7 +2,7 @@ DROP SCHEMA benefice CASCADE;
 
 CREATE SCHEMA benefice;
 
-SET search_path TO benefice,public;
+SET search_path TO benefice,dataportal,public;
 
 /* BUILDINGS AND ADDRESSES ***************************************************/
 
@@ -46,6 +46,26 @@ CREATE TABLE benefice.building_addresses (
 ALTER TABLE ONLY benefice.building_addresses
   ADD CONSTRAINT building_addresses_bldg_gid_fkey FOREIGN KEY (bldg_gid)
   REFERENCES benefice.building_footprints(bldg_gid);
+
+/* this is a table of all valid addresses in the city, even those which */
+/* do not correspond to buildings.  the positions of addresses without buildings */
+/* are interpolated using the street centerline data, while those that correspond */
+/* to buildings use the centroid of the footprint. */
+CREATE SEQUENCE benefice.addr_gid_seq;
+
+CREATE TABLE benefice.addresses (
+  addr_gid    INTEGER NOT NULL DEFAULT nextval('addr_gid_seq'),
+  addr_number INTEGER,
+  street_dir  VARCHAR(1),
+  street_name VARCHAR(35),
+  street_type VARCHAR(5),
+  unit_names  VARCHAR[]
+);
+
+SELECT AddGeometryColumn('benefice','addresses','the_geom',3435,'POINT',2);
+ALTER TABLE ONLY benefice.addresses
+  ADD CONSTRAINT addresses_unique UNIQUE (addr_gid);
+
 
 /* PERMITS AND VIOLATIONS ****************************************************/
 /* many-to-one relationship with building_footprints */
